@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "meomow",
+    "slug": "meomow-cat-catalog",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "meomow",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "meomow needs camera access to take photos of cats for your catalog.",
+        "NSLocationWhenInUseUsageDescription": "meomow needs location access to record where you found each cat."
+      }
+    },
+    "android": {
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font", 
+      "expo-camera",
+      "expo-location"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
