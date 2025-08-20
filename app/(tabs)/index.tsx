@@ -1,107 +1,163 @@
-import { useState, useEffect, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  TouchableOpacity, 
-  Image, 
-  RefreshControl,
-  Dimensions 
+import { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, MapPin, CreditCard as Edit } from 'lucide-react-native';
+
+import { Colors, FontSizes } from '@/constants';
+import { FontWeights } from '@/constants/Fonts';
 import { Cat } from '@/types/cat';
 import { CatStorage } from '@/utils/storage';
-import { Colors } from '@/constants/Colors';
-import { FontSizes } from '@/constants/Fonts';
 
-const { width } = Dimensions.get('window');
-const cardWidth = (width - 48) / 2; // 16px margins + 16px gap
-
-export default function CatalogScreen() {
-  const [cats, setCats] = useState<Cat[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
+export default function CatDetailScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [cat, setCat] = useState<Cat | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const loadCats = async () => {
-    const loadedCats = await CatStorage.getAllCats();
-    // Sort by most recent first
-    const sortedCats = loadedCats.sort((a, b) => 
-      new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime()
+  useEffect(() => {
+    loadCat();
+  }, [id]);
+
+  const loadCat = async () => {
+    if (!id) return;
+    
+    setLoading(true);
+    const catData = await CatStorage.getCatById(id);
+    setCat(catData);
+    setLoading(false);
+  };
+
+  const handleEdit = () => {
+    if (cat) {
+      router.push({
+        pathname: '/add-cat',
+        params: { catId: cat.id }
+      });
+    }
+  };
+
+  const handleDelete = () => {
+    if (!cat) return;
+
+    Alert.alert(
+      'Delete Cat',
+      `Are you sure you want to delete ${cat.name} from your catalog?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            const success = await CatStorage.deleteCat(cat.id);
+            if (success) {
+              router.back();
+            } else {
+              Alert.alert('Error', 'Failed to delete cat. Please try again.');
+            }
+          }
+        }
+      ]
     );
-    setCats(sortedCats);
   };
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await loadCats();
-    setRefreshing(false);
-  }, []);
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
 
-  useFocusEffect(
-    useCallback(() => {
-      loadCats();
-    }, [])
-  );
-
-  const handleCatPress = (catId: string) => {
-    router.push(`/cat-detail?id=${catId}`);
-  };
-
-  const renderCatCard = ({ item }: { item: Cat }) => (
-    <TouchableOpacity 
-      style={[styles.catCard, { width: cardWidth }]} 
-      onPress={() => handleCatPress(item.id)}
-      activeOpacity={0.7}
-    >
-      <Image source={{ uri: item.photoUri }} style={styles.catImage} />
-      <View style={styles.catInfo}>
-        <Text style={styles.catName} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <Text style={styles.catDate} numberOfLines={1}>
-          {new Date(item.dateAdded).toLocaleDateString()}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyTitle}>meow! no cats here...</Text>
-      <Text style={styles.emptySubtitle}>tap the + button to add your first kitty</Text>
-    </View>
-  );
+  if (!cat) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.errorText}>Cat not found</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>cat blog</Text>
-        {cats.length > 0 && (
-          <Text style={styles.catCount}>
-            {cats.length} {cats.length === 1 ? 'kitty' : 'kitties'} discovered
-          </Text>
-        )}
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => router.back()}
+        >
+          <ArrowLeft size={24} color={Colors.primary.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{cat.name}</Text>
+        <TouchableOpacity 
+          style={styles.editButton} 
+          onPress={handleEdit}
+        >
+          <Edit size={20} color={Colors.primary.text} />
+        </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={cats}
-        renderItem={renderCatCard}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContainer}
-        columnWrapperStyle={cats.length > 0 ? styles.row : undefined}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh}
-            tintColor={Colors.primary.text}
-          />
-        }
-        ListEmptyComponent={renderEmptyState}
-      />
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: cat.photoUri }} style={styles.catImage} />
+        </View>
+
+        <View style={styles.detailsContainer}>
+          <Text style={styles.catName}>{cat.name}</Text>
+          <Text style={styles.lastUpdated}>
+            last updated: {new Date(cat.lastUpdated).toLocaleDateString()}
+          </Text>
+
+          <View style={styles.locationContainer}>
+            <MapPin size={16} color={Colors.primary.text} />
+            <Text style={styles.locationText}>{cat.location.address}</Text>
+          </View>
+
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>{cat.name} is...</Text>
+            <View style={styles.infoGrid}>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>• a {cat.breed} cat</Text>
+              </View>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>• {cat.age}</Text>
+              </View>
+            </View>
+          </View>
+
+          {cat.personality.length > 0 && (
+            <View style={styles.personalitySection}>
+              <View style={styles.personalityContainer}>
+                {cat.personality.map((trait, index) => (
+                  <View key={trait} style={styles.personalityChip}>
+                    <Text style={styles.personalityText}>{trait}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {cat.notes && (
+            <View style={styles.notesSection}>
+              <Text style={styles.sectionTitle}>notes</Text>
+              <Text style={styles.notesText}>{cat.notes}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity 
+            style={styles.deleteButton} 
+            onPress={handleDelete}
+          >
+            <Text style={styles.deleteButtonText}>Delete Cat</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -112,85 +168,152 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary.backgroundAlt,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
+    backgroundColor: Colors.primary.background,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
+    flex: 1,
     fontFamily: 'Jua-Regular',
     fontSize: FontSizes.heading,
     color: Colors.primary.text,
     textAlign: 'center',
   },
-  catCount: {
-    fontFamily: 'Jua-Regular',
-    fontSize: 14,
-    color: Colors.primary.text,
-    opacity: 0.7,
-    marginTop: 4,
+  editButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  listContainer: {
-    paddingHorizontal: 16,
+  content: {
+    flex: 1,
+  },
+  imageContainer: {
+    backgroundColor: Colors.primary.background,
     paddingBottom: 20,
-  },
-  row: {
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  catCard: {
-    backgroundColor: Colors.card.background,
-    borderRadius: 12,
-    padding: 8,
-    shadowColor: Colors.card.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    alignItems: 'center',
   },
   catImage: {
-    width: '100%',
-    height: cardWidth - 60,
-    borderRadius: 8,
+    width: 280,
+    height: 280,
+    borderRadius: 12,
     backgroundColor: 'rgba(56, 48, 41, 0.1)',
   },
-  catInfo: {
-    paddingHorizontal: 8,
-    paddingVertical: 10,
-    height: 50,
-    justifyContent: 'center',
+  detailsContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   catName: {
     fontFamily: 'Jua-Regular',
-    fontSize: 16,
+    fontSize: 32,
     color: Colors.primary.text,
-    textAlign: 'center',
-  },
-  catDate: {
-    fontFamily: 'Jua-Regular',
-    fontSize: 12,
-    color: Colors.primary.text,
-    opacity: 0.6,
-    textAlign: 'center',
-    marginTop: 2,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 37,
-    minHeight: 400,
-  },
-  emptyTitle: {
-    fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.heading,
-    color: Colors.black,
     textAlign: 'center',
     marginBottom: 8,
   },
-  emptySubtitle: {
+  lastUpdated: {
+    fontFamily: 'Jua-Regular',
+    fontSize: 14,
+    color: Colors.primary.text,
+    opacity: 0.6,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  locationText: {
     fontFamily: 'Jua-Regular',
     fontSize: FontSizes.body,
-    color: Colors.black,
+    color: Colors.primary.text,
+    marginLeft: 8,
+  },
+  infoSection: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.heading,
+    color: Colors.primary.text,
+    marginBottom: 12,
+  },
+  infoGrid: {
+    gap: 8,
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  infoLabel: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+  },
+  personalitySection: {
+    marginBottom: 20,
+  },
+  personalityContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  personalityChip: {
+    backgroundColor: Colors.personality.selected.background,
+    borderColor: Colors.personality.selected.border,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  personalityText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: 14,
+    color: Colors.personality.selected.text,
+  },
+  notesSection: {
+    marginBottom: 40,
+  },
+  notesText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    lineHeight: 22,
+  },
+  deleteButton: {
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  deleteButtonText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: '#FF3B30',
+  },
+  loadingText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
     textAlign: 'center',
+    marginTop: 50,
+  },
+  errorText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    textAlign: 'center',
+    marginTop: 50,
   },
 });

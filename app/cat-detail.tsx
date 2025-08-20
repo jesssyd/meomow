@@ -12,8 +12,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, MapPin, CreditCard as Edit } from 'lucide-react-native';
 
-import { Colors } from '@/constants/Colors';
-import { FontSizes, FontWeights } from '@/constants/Fonts';
+import { Colors, FontSizes } from '@/constants';
 import { Cat } from '@/types/cat';
 import { CatStorage } from '@/utils/storage';
 
@@ -31,8 +30,12 @@ export default function CatDetailScreen() {
     if (!id) return;
     
     setLoading(true);
-    const catData = await CatStorage.getCatById(id);
-    setCat(catData);
+    try {
+      const catData = await CatStorage.getCatById(id);
+      setCat(catData);
+    } catch (error) {
+      console.error('Error loading cat:', error);
+    }
     setLoading(false);
   };
 
@@ -40,7 +43,7 @@ export default function CatDetailScreen() {
     if (cat) {
       router.push({
         pathname: '/add-cat',
-        params: { catId: cat.id }
+        params: { catId: cat.id, photoUri: cat.photoUri }
       });
     }
   };
@@ -57,10 +60,15 @@ export default function CatDetailScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            const success = await CatStorage.deleteCat(cat.id);
-            if (success) {
-              router.back();
-            } else {
+            try {
+              const success = await CatStorage.deleteCat(cat.id);
+              if (success) {
+                router.back();
+              } else {
+                Alert.alert('Error', 'Failed to delete cat. Please try again.');
+              }
+            } catch (error) {
+              console.error('Error deleting cat:', error);
               Alert.alert('Error', 'Failed to delete cat. Please try again.');
             }
           }
