@@ -17,7 +17,8 @@ import { ArrowLeft, Camera, Plus } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { v4 as uuidv4 } from 'react-native-uuid';
 
-import { Colors, FontSizes } from '@/constants/Colors';
+import { Colors } from '@/constants/Colors';
+import { FontSizes, FontWeights } from '@/constants/Fonts';
 import { Cat } from '@/types/cat';
 import { CatStorage } from '@/utils/storage';
 import { LocationService } from '@/utils/location';
