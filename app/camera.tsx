@@ -11,7 +11,6 @@ import {
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { X, RotateCcw, Zap, ZapOff, Plus, Minus } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 
@@ -19,7 +18,6 @@ const { width } = Dimensions.get('window');
 
 type FlashMode = 'off' | 'on' | 'torch';
 const ZOOM_STEP = 0.1;          // button increment
-const PINCH_SENSITIVITY = 0.8;  // higher = faster zoom response to pinch
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
@@ -28,7 +26,6 @@ export default function CameraScreen() {
   const [flash, setFlash] = useState<FlashMode>('off');
 
   const cameraRef = useRef<CameraView>(null);
-  const baseZoom = useRef(0);               // for pinch baseline
   const router = useRouter();
 
   useEffect(() => {
@@ -56,35 +53,6 @@ export default function CameraScreen() {
 
   const zoomOut = () => setZoom(z => clamp(z - ZOOM_STEP));
   const zoomIn  = () => setZoom(z => clamp(z + ZOOM_STEP));
-
-  // Pinch gesture for zoom with error handling
-  const pinchGesture = Gesture.Pinch()
-    .onBegin(() => {
-      try {
-        baseZoom.current = zoom;
-      } catch (error) {
-        console.warn('Pinch begin error:', error);
-      }
-    })
-    .onUpdate((event) => {
-      try {
-        if (event && typeof event.scale === 'number') {
-          const scale = Math.max(0.1, Math.min(5, event.scale)); // Clamp scale
-          const newZoom = baseZoom.current + (scale - 1) * PINCH_SENSITIVITY;
-          const clampedZoom = clamp(newZoom, 0, 1);
-          setZoom(clampedZoom);
-        }
-      } catch (error) {
-        console.warn('Pinch update error:', error);
-      }
-    })
-    .onEnd(() => {
-      try {
-        baseZoom.current = zoom;
-      } catch (error) {
-        console.warn('Pinch end error:', error);
-      }
-    });
 
   const takePicture = async () => {
     if (!cameraRef.current) return;
@@ -139,21 +107,15 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Gesture detector wraps the camera for pinch-to-zoom */}
-      <View style={styles.cameraContainer}>
-        <GestureDetector gesture={pinchGesture}>
-          <View style={styles.gestureView}>
-            <CameraView
-              ref={cameraRef}
-              style={styles.camera}
-              facing={facing}
-              zoom={zoom}
-              flash={(flash === 'on' ? 'on' : 'off') as any}
-              enableTorch={flash === 'torch'}
-            />
-          </View>
-        </GestureDetector>
-      </View>
+      {/* Simple camera view without gesture detection */}
+      <CameraView
+        ref={cameraRef}
+        style={styles.camera}
+        facing={facing}
+        zoom={zoom}
+        flash={(flash === 'on' ? 'on' : 'off') as any}
+        enableTorch={flash === 'torch'}
+      />
       
       {/* Controls overlay - positioned absolutely over the camera */}
       <SafeAreaView style={styles.controlsOverlay} pointerEvents="box-none">
@@ -211,8 +173,6 @@ export default function CameraScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.black },
-  cameraContainer: { flex: 1 },
-  gestureView: { flex: 1 },
   camera: { flex: 1 },
   
   // Overlay for controls positioned absolutely
