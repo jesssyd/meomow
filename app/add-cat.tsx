@@ -7,8 +7,8 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  TextInput,      
   Alert,
+  TextInput,
   ActivityIndicator,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -215,17 +215,7 @@ export default function AddCatScreen() {
           </View>
         </View>
 
-        <View style={styles.section}>
-  <Text style={styles.sectionLabel}>what's their name?</Text>
-  <TextInput
-    style={styles.textInput}
-    value={formData.name}
-    onChangeText={(text) => setFormData((prev) => ({ ...prev, name: text }))}
-    placeholder="add name"
-    placeholderTextColor="rgba(56, 48, 41, 0.5)"
-  />
-</View>
-
+       <View style={styles.section}> <Text style={styles.sectionLabel}>what's their name?</Text> <TextInput style={styles.textInput} value={formData.name} onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))} placeholder="add name" placeholderTextColor="rgba(56, 48, 41, 0.5)" /> </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>where did you find them?</Text>
@@ -272,23 +262,7 @@ export default function AddCatScreen() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>notes</Text>
-          <View style={[styles.textLikeBox, styles.notesInput]}>
-            <Text
-              style={{
-                fontFamily: 'Jua-Regular',
-                fontSize: FontSizes.body,
-                color: Colors.primary.text,
-                opacity: formData.notes ? 1 : 0.6,
-              }}
-              onPress={() => {}}
-            >
-              {formData.notes || 'add notes'}
-            </Text>
-          </View>
-          {/* If you want a real multiline TextInput, you can restore it here */}
-        </View>
+       <View style={styles.section}> <Text style={styles.sectionLabel}>notes</Text> <TextInput style={[styles.textInput, styles.notesInput]} value={formData.notes} onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))} placeholder="add notes" placeholderTextColor="rgba(56, 48, 41, 0.5)" multiline numberOfLines={4} textAlignVertical="top" /> </View>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -337,6 +311,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: 'rgba(56, 48, 41, 0.1)',
+  },
+  textInput: { 
+    backgroundColor: 'rgba(255, 255, 255, 0.8)', 
+    borderRadius: 8, 
+    paddingHorizontal: 16, 
+    paddingVertical: 12, 
+    fontFamily: 'Jua-Regular', 
+    fontSize: FontSizes.body, 
+    color: Colors.primary.text, 
+    borderWidth: 1,
+    borderColor: 'rgba(56, 48, 41, 0.1)', 
   },
   notesInput: { height: 100, paddingTop: 12 },
   locationContainer: {
