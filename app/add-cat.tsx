@@ -43,7 +43,10 @@ const initialForm = {
 
 export default function AddCatScreen() {
   const router = useRouter();
-  const { photoUri, catId } = useLocalSearchParams<{ photoUri?: string; catId?: string }>();
+  const params = useLocalSearchParams();
+  const photoUri = typeof params.photoUri === 'string' ? params.photoUri : undefined;
+  const catId = typeof params.catId === 'string' ? params.catId : undefined;
+
 
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
