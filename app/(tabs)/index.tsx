@@ -6,6 +6,15 @@ import { Colors, FontSizes } from '@/constants';
 import { Cat } from '@/types/cat';
 import { CatStorage } from '@/utils/storage';
 
+function formatDate(iso?: string) {
+  if (!iso) return 'unknown date';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return 'unknown date';
+  return d
+    .toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    .toLowerCase();
+}
+
 export default function CatalogScreen() {
   const router = useRouter();
   const [cats, setCats] = useState<Cat[]>([]);
@@ -50,9 +59,7 @@ export default function CatalogScreen() {
         >
           <Image source={{ uri: item.photoUri }} style={styles.photo} />
           <Text style={styles.name}>{item.name || '???'}</Text>
-          <Text style={styles.date}>
-  {new Date(item.lastUpdated || item.dateAdded).toLocaleDateString()}
-</Text>
+          <Text style={styles.date}>{formatDate(item.lastUpdated || item.dateAdded)}</Text>
         </TouchableOpacity>
       )}
     />
@@ -66,5 +73,6 @@ const styles = StyleSheet.create({
   list: { padding: 16, gap: 16 },
   card: { flex: 1, margin: 8, backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 12, overflow: 'hidden' },
   photo: { width: '100%', aspectRatio: 1, backgroundColor: 'rgba(56,48,41,0.1)' },
-  name: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, padding: 8, textAlign: 'center' },
+  name: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, paddingTop: 8, paddingHorizontal: 8, textAlign: 'center' },
+  date: { fontFamily: 'Jua-Regular', fontSize: FontSizes.caption, color: Colors.primary.text, opacity: 0.7, paddingBottom: 8, textAlign: 'center' },
 });
