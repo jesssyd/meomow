@@ -19,7 +19,7 @@ const { width } = Dimensions.get('window');
 
 type FlashMode = 'off' | 'on' | 'torch';
 const ZOOM_STEP = 0.1;          // button increment
-const PINCH_SENSITIVITY = 0.6;  // higher = faster zoom response to pinch
+const PINCH_SENSITIVITY = 0.8;  // higher = faster zoom response to pinch
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
@@ -28,7 +28,7 @@ export default function CameraScreen() {
   const [flash, setFlash] = useState<FlashMode>('off');
 
   const cameraRef = useRef<CameraView>(null);
-  const pinchStartZoom = useRef(0);               // for pinch baseline
+  const baseZoom = useRef(0);               // for pinch baseline
   const router = useRouter();
 
   useEffect(() => {
@@ -57,15 +57,18 @@ export default function CameraScreen() {
   const zoomOut = () => setZoom(z => clamp(z - ZOOM_STEP));
   const zoomIn  = () => setZoom(z => clamp(z + ZOOM_STEP));
 
-  // Pinch gesture
-  const pinch = Gesture.Pinch()
+  // Pinch gesture for zoom
+  const pinchGesture = Gesture.Pinch()
     .onBegin(() => {
-      pinchStartZoom.current = zoom;
+      baseZoom.current = zoom;
     })
-    .onUpdate((e) => {
-      // e.scale starts at 1, ranges up or down
-      const delta = (e.scale - 1) * PINCH_SENSITIVITY;
-      setZoom(clamp(pinchStartZoom.current + delta));
+    .onUpdate((event) => {
+      // Calculate new zoom based on pinch scale
+      const newZoom = baseZoom.current + (event.scale - 1) * PINCH_SENSITIVITY;
+      setZoom(clamp(newZoom, 0, 1));
+    })
+    .onEnd(() => {
+      baseZoom.current = zoom;
     });
 
   const takePicture = async () => {
@@ -121,61 +124,70 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
-      <GestureDetector gesture={pinch}>
+      {/* Gesture detector wraps the camera for pinch-to-zoom */}
+      <GestureDetector gesture={pinchGesture}>
         <CameraView
           ref={cameraRef}
           style={styles.camera}
           facing={facing}
           zoom={zoom}
-          // Use flash only for capture, torch for continuous light
           flash={(flash === 'on' ? 'on' : 'off') as any}
           enableTorch={flash === 'torch'}
-        >
-          <SafeAreaView style={styles.cameraControls}>
-            {/* Top bar: close + flash + flip */}
-            <View style={styles.topControls}>
-              <TouchableOpacity style={styles.circleBtn} onPress={handleCancel}>
-                <X size={24} color="white" />
-              </TouchableOpacity>
-
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                <TouchableOpacity style={styles.circleBtn} onPress={nextFlash}>
-                  {flashIcon}
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.circleBtn} onPress={toggleCameraFacing}>
-                  <RotateCcw size={24} color="white" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Bottom bar: zoom -, label, +  |  shutter  |  flash mode text */}
-            <View style={styles.bottomControls}>
-              <View style={styles.bottomRow}>
-                {/* Zoom cluster */}
-                <View style={styles.zoomCluster}>
-                  <TouchableOpacity style={styles.smallBtn} onPress={zoomOut}>
-                    <Minus size={20} color="white" />
-                  </TouchableOpacity>
-                  <Text style={styles.zoomLabel}>{`${(1 + zoom).toFixed(1)}x`}</Text>
-                  <TouchableOpacity style={styles.smallBtn} onPress={zoomIn}>
-                    <Plus size={20} color="white" />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Shutter */}
-                <TouchableOpacity style={styles.shutterButton} onPress={takePicture} activeOpacity={0.85}>
-                  <View style={styles.shutterButtonInner} />
-                </TouchableOpacity>
-
-                {/* Flash text */}
-                <View style={styles.flashPill}>
-                  <Text style={styles.flashText}>{flash}</Text>
-                </View>
-              </View>
-            </View>
-          </SafeAreaView>
-        </CameraView>
+        />
       </GestureDetector>
+      
+      {/* Controls overlay - positioned absolutely over the camera */}
+      <SafeAreaView style={styles.controlsOverlay} pointerEvents="box-none">
+        {/* Top bar: close + flash + flip */}
+        <View style={styles.topControls}>
+          <TouchableOpacity style={styles.circleBtn} onPress={handleCancel}>
+            <X size={24} color="white" />
+          </TouchableOpacity>
+
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <TouchableOpacity style={styles.circleBtn} onPress={nextFlash}>
+              {flashIcon}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.circleBtn} onPress={toggleCameraFacing}>
+              <RotateCcw size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Bottom bar: zoom -, label, +  |  shutter  |  flash mode text */}
+        <View style={styles.bottomControls}>
+          <View style={styles.bottomRow}>
+            {/* Zoom cluster */}
+            <View style={styles.zoomCluster}>
+              <TouchableOpacity 
+                style={[styles.smallBtn, zoom <= 0 && styles.disabledBtn]} 
+                onPress={zoomOut}
+                disabled={zoom <= 0}
+              >
+                <Minus size={20} color={zoom <= 0 ? "rgba(255,255,255,0.4)" : "white"} />
+              </TouchableOpacity>
+              <Text style={styles.zoomLabel}>{`${(1 + zoom * 9).toFixed(1)}x`}</Text>
+              <TouchableOpacity 
+                style={[styles.smallBtn, zoom >= 1 && styles.disabledBtn]} 
+                onPress={zoomIn}
+                disabled={zoom >= 1}
+              >
+                <Plus size={20} color={zoom >= 1 ? "rgba(255,255,255,0.4)" : "white"} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Shutter */}
+            <TouchableOpacity style={styles.shutterButton} onPress={takePicture} activeOpacity={0.85}>
+              <View style={styles.shutterButtonInner} />
+            </TouchableOpacity>
+
+            {/* Flash text */}
+            <View style={styles.flashPill}>
+              <Text style={styles.flashText}>{flash}</Text>
+            </View>
+          </View>
+        </View>
+      </SafeAreaView>
     </View>
   );
 }
@@ -183,7 +195,16 @@ export default function CameraScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.black },
   camera: { flex: 1 },
-  cameraControls: { flex: 1, backgroundColor: 'transparent' },
+  
+  // Overlay for controls positioned absolutely
+  controlsOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+  },
 
   topControls: {
     flexDirection: 'row',
@@ -222,6 +243,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  
+  disabledBtn: {
+    backgroundColor: 'rgba(0,0,0,0.25)',
   },
 
   zoomCluster: {
