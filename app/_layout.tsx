@@ -11,38 +11,63 @@ import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  useFrameworkReady();
-
+  const isFrameworkReady = useFrameworkReady();
+  
   // Load the Jua font used by the loader text
   const [fontsLoaded, fontError] = useFonts({
     'Jua-Regular': Jua_400Regular,
   });
-
+  
   // Control the animated loader (boot-only)
   const [showBoot, setShowBoot] = useState(true);
+  const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
-    if (!fontsLoaded && !fontError) return;
+    async function prepare() {
+      try {
+        // Wait for both fonts and framework to be ready
+        if (!fontsLoaded || fontError || !isFrameworkReady) {
+          return;
+        }
 
-    // Hide the native splash so our animated loader shows
-    SplashScreen.hideAsync().catch(() => {});
+        // Hide the native splash so our animated loader shows
+        await SplashScreen.hideAsync();
+        
+        // Mark app as ready after a brief delay
+        setTimeout(() => {
+          setAppReady(true);
+        }, 100);
+        
+        // Keep the animated loader up briefly (adjust duration as desired)
+        setTimeout(() => {
+          setShowBoot(false);
+        }, 1800); // Slightly longer timeout
+        
+      } catch (error) {
+        console.warn('Error during app preparation:', error);
+        // Fallback: hide loading screen even if there's an error
+        setAppReady(true);
+        setShowBoot(false);
+      }
+    }
 
-    // Keep the animated loader up briefly (adjust duration as desired)
-    const t = setTimeout(() => setShowBoot(false), 1500);
-    return () => clearTimeout(t);
-  }, [fontsLoaded, fontError]);
+    prepare();
+  }, [fontsLoaded, fontError, isFrameworkReady]);
 
-  // Show the animated loading page during boot
-  if (!fontsLoaded || showBoot) {
+  // Show the animated loading page during boot or if not ready
+  if (!fontsLoaded || !appReady || showBoot) {
     return <LoadingScreen />;
   }
 
   return (
     <>
-      {/* Expo Router auto-registers routes in /app — no need to list each one.
-          Remove the "splash" route; the animated loader replaces it. */}
       <Stack screenOptions={{ headerShown: false }}>
-        {/* Optional: keep +not-found support */}
+        {/* Explicitly define key routes to ensure they exist */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="add-cat" options={{ headerShown: false }} />
+        <Stack.Screen name="camera" options={{ headerShown: false }} />
+        <Stack.Screen name="photo-preview" options={{ headerShown: false }} />
+        <Stack.Screen name="cat/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
