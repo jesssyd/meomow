@@ -6,80 +6,170 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  TextInput,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, MapPin, CreditCard as Edit } from 'lucide-react-native';
+import { ArrowLeft, Camera, MapPin, RefreshCw } from 'lucide-react-native';
+import uuid from 'react-native-uuid';
 
-import { Colors, FontSizes } from '@/constants/Colors';
+import { Colors, FontSizes } from '@/constants';
 import { Cat } from '@/types/cat';
 import { CatStorage } from '@/utils/storage';
+import { LocationService } from '@/utils/location';
+import { PersonalityChip } from '@/components/PersonalityChip';
 
-export default function CatDetailScreen() {
+const PERSONALITY_OPTIONS = [
+  'shy', 'silly', 'sweet', 'moody', 'loud', 'friendly', 
+  'playful', 'sleepy', 'energetic'
+];
+
+export default function AddCatScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const [cat, setCat] = useState<Cat | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { photoUri, catId } = useLocalSearchParams<{ 
+    photoUri?: string; 
+    catId?: string; 
+  }>();
+
+  const [loading, setLoading] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    location: { address: 'Getting location...', coordinates: undefined },
+    breed: '',
+    age: '',
+    personality: [] as string[],
+    notes: '',
+    photoUri: photoUri || '',
+  });
+
+  const isEditing = !!catId;
 
   useEffect(() => {
-    loadCat();
-  }, [id]);
+    if (isEditing && catId) {
+      loadExistingCat();
+    } else {
+      getCurrentLocation();
+    }
+  }, [catId]);
 
-  const loadCat = async () => {
-    if (!id) return;
+  const loadExistingCat = async () => {
+    if (!catId) return;
     
     setLoading(true);
-    const catData = await CatStorage.getCatById(id);
-    setCat(catData);
-    setLoading(false);
-  };
-
-  const handleEdit = () => {
-    if (cat) {
-      router.push({
-        pathname: '/add-cat',
-        params: { catId: cat.id }
-      });
+    try {
+      const cat = await CatStorage.getCatById(catId);
+      if (cat) {
+        setFormData({
+          name: cat.name,
+          location: cat.location,
+          breed: cat.breed,
+          age: cat.age,
+          personality: cat.personality,
+          notes: cat.notes || '',
+          photoUri: cat.photoUri,
+        });
+      }
+    } catch (error) {
+      console.error('Error loading cat:', error);
+      Alert.alert('Error', 'Failed to load cat data');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDelete = () => {
-    if (!cat) return;
-
-    Alert.alert(
-      'Delete Cat',
-      `Are you sure you want to delete ${cat.name} from your catalog?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            const success = await CatStorage.deleteCat(cat.id);
-            if (success) {
-              router.back();
-            } else {
-              Alert.alert('Error', 'Failed to delete cat. Please try again.');
-            }
-          }
-        }
-      ]
-    );
+  const getCurrentLocation = async () => {
+    setLocationLoading(true);
+    try {
+      const locationData = await LocationService.getCurrentLocation();
+      setFormData(prev => ({
+        ...prev,
+        location: locationData,
+      }));
+    } catch (error) {
+      console.error('Error getting location:', error);
+      setFormData(prev => ({
+        ...prev,
+        location: { address: 'Unable to get location' },
+      }));
+    } finally {
+      setLocationLoading(false);
+    }
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loadingText}>Loading...</Text>
-      </SafeAreaView>
-    );
-  }
+  const handleTakePhoto = () => {
+    router.push('/camera');
+  };
 
-  if (!cat) {
+  const handlePersonalityToggle = (trait: string) => {
+    setFormData(prev => ({
+      ...prev,
+      personality: prev.personality.includes(trait)
+        ? prev.personality.filter(p => p !== trait)
+        : [...prev.personality, trait],
+    }));
+  };
+
+  const canSave = formData.photoUri.trim() !== '' && formData.name.trim() !== '' && !loading;
+
+  const handleSave = async () => {
+    if (!canSave) {
+      Alert.alert('Missing Information', 'Please add a photo and name for the cat.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const now = new Date().toISOString();
+      const cat: Cat = {
+        id: catId || uuid.v4() as string,
+        name: formData.name.trim(),
+        photoUri: formData.photoUri,
+        location: formData.location,
+        breed: formData.breed.trim() || 'Unknown',
+        age: formData.age.trim() || 'Unknown',
+        personality: formData.personality,
+        notes: formData.notes.trim(),
+        dateAdded: isEditing ? (await CatStorage.getCatById(catId!))?.dateAdded || now : now,
+        lastUpdated: now,
+      };
+
+      console.log('Saving cat:', cat);
+      await CatStorage.saveCat(cat);
+      
+      Alert.alert(
+        'Success!', 
+        `${cat.name} has been ${isEditing ? 'updated' : 'added to'} your catalog!`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              if (isEditing) {
+                router.back();
+              } else {
+                router.push('/(tabs)/');
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Error saving cat:', error);
+      Alert.alert('Error', 'Failed to save cat. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading && isEditing) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.errorText}>Cat not found</Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={Colors.primary.text} />
+          <Text style={styles.loadingText}>Loading cat data...</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -93,70 +183,127 @@ export default function CatDetailScreen() {
         >
           <ArrowLeft size={24} color={Colors.primary.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{cat.name}</Text>
-        <TouchableOpacity 
-          style={styles.editButton} 
-          onPress={handleEdit}
-        >
-          <Edit size={20} color={Colors.primary.text} />
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>
+          {isEditing ? 'edit cat!' : 'new cat!'}
+        </Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: cat.photoUri }} style={styles.catImage} />
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>photos/videos</Text>
+          <View style={styles.photoSection}>
+            {formData.photoUri ? (
+              <TouchableOpacity style={styles.photoContainer} onPress={handleTakePhoto}>
+                <Image source={{ uri: formData.photoUri }} style={styles.photo} />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.photoButton} onPress={handleTakePhoto}>
+                <Camera size={32} color={Colors.primary.text} />
+                <Text style={styles.photoButtonText}>take photo</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
-        <View style={styles.detailsContainer}>
-          <Text style={styles.catName}>{cat.name}</Text>
-          <Text style={styles.lastUpdated}>
-            last updated: {new Date(cat.lastUpdated).toLocaleDateString()}
-          </Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>what's their name?</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.name}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
+            placeholder="add name"
+            placeholderTextColor="rgba(56, 48, 41, 0.5)"
+          />
+        </View>
 
-          <View style={styles.locationContainer}>
-            <MapPin size={16} color={Colors.primary.text} />
-            <Text style={styles.locationText}>{cat.location.address}</Text>
-          </View>
-
-          <View style={styles.infoSection}>
-            <Text style={styles.sectionTitle}>{cat.name} is...</Text>
-            <View style={styles.infoGrid}>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>• a {cat.breed} cat</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>• {cat.age}</Text>
-              </View>
-            </View>
-          </View>
-
-          {cat.personality.length > 0 && (
-            <View style={styles.personalitySection}>
-              <View style={styles.personalityContainer}>
-                {cat.personality.map((trait, index) => (
-                  <View key={trait} style={styles.personalityChip}>
-                    <Text style={styles.personalityText}>{trait}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {cat.notes && (
-            <View style={styles.notesSection}>
-              <Text style={styles.sectionTitle}>notes</Text>
-              <Text style={styles.notesText}>{cat.notes}</Text>
-            </View>
-          )}
-
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>where did you find them?</Text>
           <TouchableOpacity 
-            style={styles.deleteButton} 
-            onPress={handleDelete}
+            style={styles.locationContainer} 
+            onPress={getCurrentLocation}
+            disabled={locationLoading}
           >
-            <Text style={styles.deleteButtonText}>Delete Cat</Text>
+            <MapPin size={16} color={Colors.primary.text} />
+            <Text style={styles.locationText}>
+              {locationLoading ? 'Getting location...' : formData.location.address}
+            </Text>
+            {locationLoading ? (
+              <ActivityIndicator size="small" color={Colors.primary.text} />
+            ) : (
+              <RefreshCw size={16} color={Colors.primary.text} />
+            )}
           </TouchableOpacity>
         </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>what kind of cat?</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.breed}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, breed: text }))}
+            placeholder="choose"
+            placeholderTextColor="rgba(56, 48, 41, 0.5)"
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>how old are they?</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.age}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, age: text }))}
+            placeholder="choose"
+            placeholderTextColor="rgba(56, 48, 41, 0.5)"
+          />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>personality</Text>
+          <View style={styles.personalityContainer}>
+            {PERSONALITY_OPTIONS.map((trait) => (
+              <PersonalityChip
+                key={trait}
+                label={trait}
+                selected={formData.personality.includes(trait)}
+                onPress={handlePersonalityToggle}
+              />
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>notes</Text>
+          <TextInput
+            style={[styles.textInput, styles.notesInput]}
+            value={formData.notes}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
+            placeholder="add notes"
+            placeholderTextColor="rgba(56, 48, 41, 0.5)"
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+        </View>
+
+        <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      <View style={styles.saveButtonContainer}>
+        <TouchableOpacity
+          style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
+          onPress={handleSave}
+          disabled={!canSave}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color={Colors.button.primaryText} />
+          ) : (
+            <Text style={styles.saveButtonText}>
+              {isEditing ? 'update cat' : 'save to catalog'}
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -164,14 +311,24 @@ export default function CatDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.primary.backgroundAlt,
+    backgroundColor: Colors.primary.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    marginTop: 16,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Colors.primary.background,
   },
   backButton: {
     width: 44,
@@ -186,133 +343,117 @@ const styles = StyleSheet.create({
     color: Colors.primary.text,
     textAlign: 'center',
   },
-  editButton: {
+  headerSpacer: {
     width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   content: {
     flex: 1,
+    paddingHorizontal: 20,
   },
-  imageContainer: {
-    backgroundColor: Colors.primary.background,
-    paddingBottom: 20,
+  section: {
+    marginBottom: 20,
+  },
+  sectionLabel: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    marginBottom: 12,
+  },
+  photoSection: {
     alignItems: 'center',
   },
-  catImage: {
-    width: 280,
-    height: 280,
-    borderRadius: 12,
+  photoContainer: {
+    width: 160,
+    height: 160,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  photo: {
+    width: '100%',
+    height: '100%',
     backgroundColor: 'rgba(56, 48, 41, 0.1)',
   },
-  detailsContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
+  photoButton: {
+    width: 160,
+    height: 160,
+    backgroundColor: 'rgba(56, 48, 41, 0.05)',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: 'rgba(56, 48, 41, 0.2)',
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  catName: {
-    fontFamily: 'Jua-Regular',
-    fontSize: 32,
-    color: Colors.primary.text,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  lastUpdated: {
+  photoButtonText: {
     fontFamily: 'Jua-Regular',
     fontSize: 14,
     color: Colors.primary.text,
-    opacity: 0.6,
-    textAlign: 'center',
-    marginBottom: 20,
+    marginTop: 8,
+  },
+  textInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 48, 41, 0.1)',
+  },
+  notesInput: {
+    height: 100,
+    paddingTop: 12,
   },
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 48, 41, 0.1)',
   },
   locationText: {
+    flex: 1,
     fontFamily: 'Jua-Regular',
     fontSize: FontSizes.body,
     color: Colors.primary.text,
     marginLeft: 8,
-  },
-  infoSection: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.heading,
-    color: Colors.primary.text,
-    marginBottom: 12,
-  },
-  infoGrid: {
-    gap: 8,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoLabel: {
-    fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
-    color: Colors.primary.text,
-  },
-  personalitySection: {
-    marginBottom: 20,
+    marginRight: 8,
   },
   personalityContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
-  personalityChip: {
-    backgroundColor: Colors.personality.selected.background,
-    borderColor: Colors.personality.selected.border,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+  bottomSpacer: {
+    height: 100,
   },
-  personalityText: {
-    fontFamily: 'Jua-Regular',
-    fontSize: 14,
-    color: Colors.personality.selected.text,
+  saveButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    backgroundColor: Colors.primary.background,
   },
-  notesSection: {
-    marginBottom: 40,
-  },
-  notesText: {
-    fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
-    color: Colors.primary.text,
-    lineHeight: 22,
-  },
-  deleteButton: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+  saveButton: {
+    backgroundColor: Colors.button.primary,
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 40,
+    justifyContent: 'center',
+    minHeight: 56,
   },
-  deleteButtonText: {
-    fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
-    color: '#FF3B30',
+  saveButtonDisabled: {
+    backgroundColor: 'rgba(59, 64, 89, 0.5)',
   },
-  loadingText: {
+  saveButtonText: {
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
-    color: Colors.primary.text,
-    textAlign: 'center',
-    marginTop: 50,
-  },
-  errorText: {
-    fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
-    color: Colors.primary.text,
-    textAlign: 'center',
-    marginTop: 50,
+    fontSize: FontSizes.heading,
+    color: Colors.button.primaryText,
   },
 });
