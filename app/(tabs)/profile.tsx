@@ -2,7 +2,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import { CatStorage } from '@/utils/storage';
-import { Colors, FontSizes } from '@/constants/Colors';
+import { Colors } from '@/constants/Colors';
+import { FontSizes } from '@/constants/Fonts';
 
 export default function ProfileScreen() {
   const [catCount, setCatCount] = useState(0);

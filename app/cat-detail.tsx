@@ -12,7 +12,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, MapPin, CreditCard as Edit } from 'lucide-react-native';
 
-import { Colors, FontSizes } from '@/constants/Colors';
+import { Colors } from '@/constants/Colors';
+import { FontSizes, FontWeights } from '@/constants/Fonts';
 import { Cat } from '@/types/cat';
 import { CatStorage } from '@/utils/storage';
 

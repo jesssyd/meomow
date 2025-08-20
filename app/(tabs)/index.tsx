@@ -13,7 +13,8 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Cat } from '@/types/cat';
 import { CatStorage } from '@/utils/storage';
-import { Colors, FontSizes } from '@/constants/Colors';
+import { Colors } from '@/constants/Colors';
+import { FontSizes } from '@/constants/Fonts';
 
 const { width } = Dimensions.get('window');
 const cardWidth = (width - 48) / 2; // 16px margins + 16px gap
