@@ -121,49 +121,31 @@ export default function CatDetailScreen() {
           </View>
 
           <View style={styles.infoSection}>
-      console.log('Getting current location...'); // Debug log
             <Text style={styles.sectionTitle}>{cat.name} is...</Text>
             <View style={styles.infoGrid}>
-        console.log('Location permission denied'); // Debug log
-        return {
-          address: 'Location permission denied',
-        };
+              <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>• a {cat.breed} cat</Text>
               </View>
-      console.log('Getting GPS coordinates...'); // Debug log
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>• {cat.age}</Text>
-        timeout: 10000,
               </View>
             </View>
-      console.log('GPS coordinates:', location.coords); // Debug log
-
           </View>
-      let address = 'Unknown location';
-      try {
-        const reverseGeocode = await Location.reverseGeocodeAsync({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        });
-                {cat.personality.map((trait, index) => (
-        console.log('Reverse geocode result:', reverseGeocode); // Debug log
 
-        if (reverseGeocode.length > 0) {
-          const place = reverseGeocode[0];
-          const parts = [
-            place.street,
-            place.city,
-            place.region
-          ].filter(Boolean);
-          address = parts.join(', ') || 'Unknown location';
-        }
-      } catch (geocodeError) {
-        console.error('Reverse geocoding failed:', geocodeError);
-        address = `${location.coords.latitude.toFixed(4)}, ${location.coords.longitude.toFixed(4)}`;
+          <View style={styles.personalitySection}>
+            <Text style={styles.sectionTitle}>personality</Text>
+            <View style={styles.personalityContainer}>
+              {cat.personality.map((trait, index) => (
+                <View key={index} style={styles.personalityChip}>
+                  <Text style={styles.personalityText}>{trait}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {cat.notes && (
             <View style={styles.notesSection}>
               <Text style={styles.sectionTitle}>notes</Text>
-      console.log('Final address:', address); // Debug log
-
               <Text style={styles.notesText}>{cat.notes}</Text>
             </View>
           )}
