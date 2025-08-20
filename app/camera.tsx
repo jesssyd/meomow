@@ -57,18 +57,33 @@ export default function CameraScreen() {
   const zoomOut = () => setZoom(z => clamp(z - ZOOM_STEP));
   const zoomIn  = () => setZoom(z => clamp(z + ZOOM_STEP));
 
-  // Pinch gesture for zoom
+  // Pinch gesture for zoom with error handling
   const pinchGesture = Gesture.Pinch()
     .onBegin(() => {
-      baseZoom.current = zoom;
+      try {
+        baseZoom.current = zoom;
+      } catch (error) {
+        console.warn('Pinch begin error:', error);
+      }
     })
     .onUpdate((event) => {
-      // Calculate new zoom based on pinch scale
-      const newZoom = baseZoom.current + (event.scale - 1) * PINCH_SENSITIVITY;
-      setZoom(clamp(newZoom, 0, 1));
+      try {
+        if (event && typeof event.scale === 'number') {
+          const scale = Math.max(0.1, Math.min(5, event.scale)); // Clamp scale
+          const newZoom = baseZoom.current + (scale - 1) * PINCH_SENSITIVITY;
+          const clampedZoom = clamp(newZoom, 0, 1);
+          setZoom(clampedZoom);
+        }
+      } catch (error) {
+        console.warn('Pinch update error:', error);
+      }
     })
     .onEnd(() => {
-      baseZoom.current = zoom;
+      try {
+        baseZoom.current = zoom;
+      } catch (error) {
+        console.warn('Pinch end error:', error);
+      }
     });
 
   const takePicture = async () => {
@@ -125,16 +140,20 @@ export default function CameraScreen() {
   return (
     <View style={styles.container}>
       {/* Gesture detector wraps the camera for pinch-to-zoom */}
-      <GestureDetector gesture={pinchGesture}>
-        <CameraView
-          ref={cameraRef}
-          style={styles.camera}
-          facing={facing}
-          zoom={zoom}
-          flash={(flash === 'on' ? 'on' : 'off') as any}
-          enableTorch={flash === 'torch'}
-        />
-      </GestureDetector>
+      <View style={styles.cameraContainer}>
+        <GestureDetector gesture={pinchGesture}>
+          <View style={styles.gestureView}>
+            <CameraView
+              ref={cameraRef}
+              style={styles.camera}
+              facing={facing}
+              zoom={zoom}
+              flash={(flash === 'on' ? 'on' : 'off') as any}
+              enableTorch={flash === 'torch'}
+            />
+          </View>
+        </GestureDetector>
+      </View>
       
       {/* Controls overlay - positioned absolutely over the camera */}
       <SafeAreaView style={styles.controlsOverlay} pointerEvents="box-none">
@@ -154,7 +173,7 @@ export default function CameraScreen() {
           </View>
         </View>
 
-        {/* Bottom bar: zoom -, label, +  |  shutter  |  flash mode text */}
+        {/* Bottom bar: zoom controls and shutter */}
         <View style={styles.bottomControls}>
           <View style={styles.bottomRow}>
             {/* Zoom cluster */}
@@ -181,10 +200,8 @@ export default function CameraScreen() {
               <View style={styles.shutterButtonInner} />
             </TouchableOpacity>
 
-            {/* Flash text */}
-            <View style={styles.flashPill}>
-              <Text style={styles.flashText}>{flash}</Text>
-            </View>
+            {/* Empty space for balance */}
+            <View style={styles.rightSpacer} />
           </View>
         </View>
       </SafeAreaView>
@@ -194,6 +211,8 @@ export default function CameraScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.black },
+  cameraContainer: { flex: 1 },
+  gestureView: { flex: 1 },
   camera: { flex: 1 },
   
   // Overlay for controls positioned absolutely
@@ -281,17 +300,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
 
-  flashPill: { width: width * 0.32, alignItems: 'flex-end' },
-  flashText: {
-    textTransform: 'uppercase',
-    fontFamily: 'Jua-Regular',
-    fontSize: 12,
-    color: 'white',
-    opacity: 0.9,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    borderRadius: 14,
+  rightSpacer: { 
+    width: width * 0.32 
   },
 
   permissionContainer: {
