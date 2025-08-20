@@ -11,7 +11,7 @@ import {
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { X, SwitchCamera Zap, ZapOff, Plus, Minus } from 'lucide-react-native';
+import { X, SwitchCamera, Zap, ZapOff, Plus, Minus } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 
 const { width } = Dimensions.get('window');
