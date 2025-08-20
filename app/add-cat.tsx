@@ -28,8 +28,8 @@ const PERSONALITY_OPTIONS = [
   'playful', 'sleepy', 'energetic',
 ];
 
-const BREEDS = ['tabby', 'calico', 'siamese', 'persian', 'maine coon', 'bengal', 'ragdoll', 'sphynx', 'british shorthair', 'other']; ;
-const AGES = ['kitten (0-1 year)', 'young (1-3 years)', 'adult (3-7 years)', 'senior (7+ years)']
+const BREEDS = ['tabby', 'calico', 'siamese', 'persian', 'maine coon', 'bengal', 'ragdoll', 'sphynx', 'british shorthair', 'other'];
+const AGES = ['kitten (0-1 year)', 'young (1-3 years)', 'adult (3-7 years)', 'senior (7+ years)'];
 
 const initialForm = {
   name: '',
@@ -46,7 +46,6 @@ export default function AddCatScreen() {
   const params = useLocalSearchParams();
   const photoUri = typeof params.photoUri === 'string' ? params.photoUri : undefined;
   const catId = typeof params.catId === 'string' ? params.catId : undefined;
-
 
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -218,16 +217,29 @@ export default function AddCatScreen() {
           </View>
         </View>
 
-       <View style={styles.section}> <Text style={styles.sectionLabel}>what's their name?</Text> <TextInput style={styles.textInput} value={formData.name} onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))} placeholder="add name" placeholderTextColor="rgba(56, 48, 41, 0.5)" /> </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>what's their name?</Text>
+          <TextInput
+            style={styles.textInput}
+            value={formData.name}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
+            placeholder="add name"
+            placeholderTextColor="rgba(56, 48, 41, 0.5)"
+          />
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>where did you find them?</Text>
           <TouchableOpacity style={styles.locationContainer} onPress={getCurrentLocation} disabled={locationLoading}>
             <MapPin size={16} color={Colors.primary.text} />
             <Text style={styles.locationText}>
-              {locationLoading ? 'Getting location...' : formData.location.address}
+              {locationLoading ? 'Getting location...' : (formData.location?.address || 'Unknown location')}
             </Text>
-            {locationLoading ? <ActivityIndicator size="small" color={Colors.primary.text} /> : <RefreshCw size={16} color={Colors.primary.text} />}
+            {locationLoading ? (
+              <ActivityIndicator size="small" color={Colors.primary.text} />
+            ) : (
+              <RefreshCw size={16} color={Colors.primary.text} />
+            )}
           </TouchableOpacity>
         </View>
 
@@ -265,7 +277,19 @@ export default function AddCatScreen() {
           </View>
         </View>
 
-       <View style={styles.section}> <Text style={styles.sectionLabel}>notes</Text> <TextInput style={[styles.textInput, styles.notesInput]} value={formData.notes} onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))} placeholder="add notes" placeholderTextColor="rgba(56, 48, 41, 0.5)" multiline numberOfLines={4} textAlignVertical="top" /> </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>notes</Text>
+          <TextInput
+            style={[styles.textInput, styles.notesInput]}
+            value={formData.notes}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
+            placeholder="add notes"
+            placeholderTextColor="rgba(56, 48, 41, 0.5)"
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+        </View>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -307,14 +331,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
   },
   photoButtonText: { fontFamily: 'Jua-Regular', fontSize: 14, color: Colors.primary.text, marginTop: 8 },
-  textLikeBox: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(56, 48, 41, 0.1)',
-  },
   textInput: { 
     backgroundColor: 'rgba(255, 255, 255, 0.8)', 
     borderRadius: 8, 
