@@ -5,9 +5,7 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   Alert,
-  Dimensions,
-  PanGestureHandler,
-  State
+  Dimensions
 } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions, FlashMode } from 'expo-camera';
 import { useRouter } from 'expo-router';
