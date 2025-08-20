@@ -5,54 +5,51 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts, Jua_400Regular } from '@expo-google-fonts/jua';
 import * as SplashScreen from 'expo-splash-screen';
 import LoadingScreen from '@/components/LoadingScreen';
-import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 
-// Keep the OS splash until we’re ready to show our animated loader
+// Keep the OS splash until we decide to hide it
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  const frameworkReady = useFrameworkReady();
+  // 1) Only wait for fonts (simpler & reliable). If the font fails, proceed.
+  const [fontsLoaded, fontError] = useFonts({ 'Jua-Regular': Jua_400Regular });
+  const ready = fontsLoaded || !!fontError;
 
-  // Load the Jua font used by the loader text
-  const [fontsLoaded] = useFonts({ 'Jua-Regular': Jua_400Regular });
-
-  // Single flag that controls the boot animation visibility
+  // 2) One piece of state that controls our animated boot screen
   const [showBoot, setShowBoot] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function boot() {
-      // Wait until both are ready
-      if (!frameworkReady || !fontsLoaded) return;
+    // Hard fallback: never allow boot screen to persist beyond X seconds
+    const MAX_BOOT_MS = 3500;
+    const hardTimeout = setTimeout(() => {
+      if (!cancelled) setShowBoot(false);
+      SplashScreen.hideAsync().catch(() => {});
+    }, MAX_BOOT_MS);
 
-      // Hide native splash so our LoadingScreen becomes visible
-      await SplashScreen.hideAsync();
-
-      // Show the animated loader for a short, fixed time (avoid flicker)
-      const MIN_DISPLAY_MS = 700;
-      const t = setTimeout(() => {
-        if (!cancelled) setShowBoot(false);
-      }, MIN_DISPLAY_MS);
-
-      return () => clearTimeout(t);
+    // Normal path: when ready, hide OS splash and show our loader briefly
+    if (ready) {
+      (async () => {
+        await SplashScreen.hideAsync().catch(() => {});
+        const MIN_DISPLAY_MS = 700; // short & consistent
+        setTimeout(() => {
+          if (!cancelled) setShowBoot(false);
+        }, MIN_DISPLAY_MS);
+      })();
     }
 
-    const cleanup = boot();
     return () => {
       cancelled = true;
-      // cleanup may be a promise; ignore if not set
-      // @ts-ignore
-      if (typeof cleanup === 'function') cleanup();
+      clearTimeout(hardTimeout);
     };
-  }, [frameworkReady, fontsLoaded]);
+  }, [ready]);
 
-  // During boot, render your animated loading screen
+  // 3) While booting, render your animated loader
   if (showBoot) {
     return <LoadingScreen />;
   }
 
-  // App content
+  // 4) App content
   return (
     <>
       <Stack screenOptions={{ headerShown: false }} initialRouteName="(tabs)">
