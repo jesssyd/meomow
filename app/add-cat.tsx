@@ -106,6 +106,12 @@ export default function AddCatScreen() {
     }
   };
 
+  const resetForm = async () => {
+  setFormData({ ...initialForm });
+  // re-fetch a fresh location for the next entry
+  await getCurrentLocation();
+};
+
   const handleTakePhoto = () => {
     router.push('/camera');
   };
@@ -123,54 +129,64 @@ export default function AddCatScreen() {
   const canSave = formData.photoUri.trim() !== '' && !loading;
 
 
-  const handleSave = async () => {
-    if (!canSave) {
+const handleSave = async () => {
+  if (!formData.photoUri.trim()) {
     Alert.alert('Missing photo', 'Please add at least one photo of the cat.');
     return;
-    }
+  }
 
-    setLoading(true);
-    try {
-      const now = new Date().toISOString();
-      const cat: Cat = {
-        id: catId || uuid.v4() as string,
+  setLoading(true);
+  try {
+    const now = new Date().toISOString();
+    const existing = isEditing && catId ? await CatStorage.getCatById(catId) : null;
+
+    const cat: Cat = {
+      id: catId || (uuid.v4() as string),
       name: formData.name.trim() || '???',
-        photoUri: formData.photoUri,
-        location: formData.location,
-        breed: formData.breed.trim() || 'Unknown',
-        age: formData.age.trim() || 'Unknown',
-        personality: formData.personality,
-        notes: formData.notes.trim(),
-        dateAdded: isEditing ? (await CatStorage.getCatById(catId!))?.dateAdded || now : now,
-        lastUpdated: now,
-      };
+      photoUri: formData.photoUri,
+      // avoid saving the placeholder address if location never resolved
+      location:
+        formData.location?.address?.toLowerCase().includes('getting location')
+          ? { address: 'unknown location' }
+          : formData.location,
+      breed: formData.breed.trim() || 'unknown',
+      age: formData.age.trim() || 'unknown',
+      personality: formData.personality,
+      notes: formData.notes.trim(),
+      dateAdded: existing?.dateAdded ?? now,
+      lastUpdated: now,
+    };
 
-      console.log('Saving cat:', cat);
-      await CatStorage.saveCat(cat);
-      
-      Alert.alert(
-        'Success!', 
-        `${cat.name} has been ${isEditing ? 'updated' : 'added to'} your catalog!`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              if (isEditing) {
-                router.back();
-              } else {
-                router.push('/(tabs)/');
-              }
+    await CatStorage.saveCat(cat);
+
+    // clear the form for the next add
+    await resetForm();
+
+    Alert.alert(
+      'miaow! success!',
+      `${cat.name} has been ${isEditing ? 'updated' : 'added to'} your catalog!`,
+      [
+        {
+          text: 'OK',
+          onPress: () => {
+            if (isEditing) {
+              router.back();
+            } else {
+              // go back to the catalog; when you return to add screen later it will be fresh
+              router.push('/(tabs)/');
             }
-          }
-        ]
-      );
-    } catch (error) {
-      console.error('Error saving cat:', error);
-      Alert.alert('Error', 'Failed to save cat. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+          },
+        },
+      ],
+    );
+  } catch (error) {
+    console.error('error saving cat:', error);
+    Alert.alert('error', 'failed to save cat. please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   if (loading && isEditing) {
     return (
