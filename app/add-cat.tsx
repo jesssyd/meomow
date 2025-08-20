@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  TextInput,      
   Alert,
   ActivityIndicator,
 } from 'react-native';
@@ -215,17 +216,16 @@ export default function AddCatScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>what's their name?</Text>
-          <Select
-            // keep text input? you still can, but name can be blank
-            // If you prefer a TextInput, replace this block with your TextInput
-            value={formData.name}
-            options={[]}
-            placeholder="type above" // not used; keeping API consistent
-            onChange={() => {}}
-          />
-          {/* If you want the real typed name field, swap back to your TextInput */}
-        </View>
+  <Text style={styles.sectionLabel}>what's their name?</Text>
+  <TextInput
+    style={styles.textInput}
+    value={formData.name}
+    onChangeText={(text) => setFormData((prev) => ({ ...prev, name: text }))}
+    placeholder="add name"
+    placeholderTextColor="rgba(56, 48, 41, 0.5)"
+  />
+</View>
+
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>where did you find them?</Text>
