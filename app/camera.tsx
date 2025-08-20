@@ -264,4 +264,31 @@ const styles = StyleSheet.create({
     color: 'white',
     opacity: 0.9,
     paddingHorizontal: 10,
-    p
+    paddingVertical: 6,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderRadius: 14,
+  },
+
+  permissionContainer: {
+    flex: 1, justifyContent: 'center', alignItems: 'center',
+    paddingHorizontal: 40, backgroundColor: Colors.primary.backgroundAlt,
+  },
+  permissionTitle: {
+    fontFamily: 'Jua-Regular', fontSize: 24, color: Colors.primary.text,
+    textAlign: 'center', marginBottom: 16,
+  },
+  permissionText: {
+    fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.primary.text,
+    textAlign: 'center', marginBottom: 30, lineHeight: 22,
+  },
+  permissionButton: {
+    backgroundColor: Colors.button.primary, paddingHorizontal: 32,
+    paddingVertical: 16, borderRadius: 8, marginBottom: 12,
+  },
+  permissionButtonText: {
+    fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.button.primaryText, textAlign: 'center',
+  },
+  cancelButton: { paddingHorizontal: 32, paddingVertical: 16 },
+  cancelButtonText: { fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.primary.text, textAlign: 'center' },
+  message: { fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.white, textAlign: 'center' },
+});
