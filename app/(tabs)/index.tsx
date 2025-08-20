@@ -24,7 +24,7 @@ export default function CatalogScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <Text style={styles.loading}>Loading kitties...</Text>
+        <Text style={styles.loading}>loading kitties...</Text>
       </View>
     );
   }
@@ -50,6 +50,9 @@ export default function CatalogScreen() {
         >
           <Image source={{ uri: item.photoUri }} style={styles.photo} />
           <Text style={styles.name}>{item.name || '???'}</Text>
+          <Text style={styles.date}>
+  {new Date(item.lastUpdated || item.dateAdded).toLocaleDateString()}
+</Text>
         </TouchableOpacity>
       )}
     />
