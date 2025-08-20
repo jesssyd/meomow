@@ -26,24 +26,31 @@ const PERSONALITY_OPTIONS = [
   'playful', 'sleepy', 'energetic'
 ];
 
+const initialForm = {
+  name: '',
+  location: { address: 'Getting location...', coordinates: undefined as undefined | { latitude: number; longitude: number } },
+  breed: '',
+  age: '',
+  personality: [] as string[],
+  notes: '',
+  photoUri: '',  // will set from params below
+};
+
 export default function AddCatScreen() {
   const router = useRouter();
-  const { photoUri, catId } = useLocalSearchParams<{ 
-    photoUri?: string; 
-    catId?: string; 
+  
+  const { photoUri, catId } = useLocalSearchParams<{
+    photoUri?: string;
+    catId?: string;
   }>();
-
+  
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    location: { address: 'Getting location...', coordinates: undefined },
-    breed: '',
-    age: '',
-    personality: [] as string[],
-    notes: '',
+    ...initialForm,
     photoUri: photoUri || '',
   });
+
 
   const isEditing = !!catId;
 
@@ -112,29 +119,32 @@ export default function AddCatScreen() {
     }));
   };
 
-  const canSave = formData.photoUri.trim() !== '' && formData.name.trim() !== '' && !loading;
+  // 3) allow save with photo only:
+  const canSave = formData.photoUri.trim() !== '' && !loading;
 
-  const handleSave = async () => {
-    if (!canSave) {
-      Alert.alert('Missing Information', 'Please add a photo and name for the cat.');
-      return;
-    }
 
-    setLoading(true);
-    try {
-      const now = new Date().toISOString();
-      const cat: Cat = {
-        id: catId || uuid.v4() as string,
-        name: formData.name.trim(),
-        photoUri: formData.photoUri,
-        location: formData.location,
-        breed: formData.breed.trim() || 'Unknown',
-        age: formData.age.trim() || 'Unknown',
-        personality: formData.personality,
-        notes: formData.notes.trim(),
-        dateAdded: isEditing ? (await CatStorage.getCatById(catId!))?.dateAdded || now : now,
-        lastUpdated: now,
-      };
+  // 4) update handleSave
+const handleSave = async () => {
+  if (!formData.photoUri.trim()) {
+    Alert.alert('Missing photo', 'Please add at least one photo of the cat.');
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const now = new Date().toISOString();
+    const cat: Cat = {
+      id: catId || (uuid.v4() as string),
+      // default the name to ???
+      name: formData.name.trim() || '???',
+      photoUri: formData.photoUri,
+      location: formData.location,
+      breed: formData.breed.trim() || 'Unknown',
+      age: formData.age.trim() || 'Unknown',
+      personality: formData.personality,
+      notes: formData.notes.trim(),
+      dateAdded: isEditing ? (await CatStorage.getCatById
+
 
       console.log('Saving cat:', cat);
       await CatStorage.saveCat(cat);
