@@ -1,24 +1,32 @@
 import { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   Alert,
-  Dimensions 
+  Dimensions,
 } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { X, RotateCcw } from 'lucide-react-native';
+import { X, RotateCcw, Zap, ZapOff, Plus, Minus } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
-import * as MediaLibrary from 'expo-media-library';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
+
+// CameraView accepts 'off' | 'on' | 'auto' | 'torch' for flash in runtime.
+// We declare our own union so TS is happy.
+type FlashMode = 'off' | 'on' | 'auto' | 'torch';
+
+const ZOOM_STEP = 0.1;
 
 export default function CameraScreen() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
+  const [zoom, setZoom] = useState(0); // 0..1
+  const [flash, setFlash] = useState<FlashMode>('off');
+
   const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
 
@@ -27,6 +35,42 @@ export default function CameraScreen() {
       requestPermission();
     }
   }, [permission]);
+
+  const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
+
+  const toggleCameraFacing = () => {
+    setFacing((curr) => (curr === 'back' ? 'front' : 'back'));
+  };
+
+  const cycleFlash = () => {
+    setFlash((f) => (f === 'off' ? 'on' : f === 'on' ? 'auto' : f === 'auto' ? 'torch' : 'off'));
+  };
+
+  const zoomOut = () => setZoom((z) => clamp(z - ZOOM_STEP));
+  const zoomIn = () => setZoom((z) => clamp(z + ZOOM_STEP));
+
+  const takePicture = async () => {
+    if (!cameraRef.current) return;
+
+    try {
+      // CameraView uses the current `flash` prop when capturing.
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        base64: false,
+      });
+
+      if (photo) {
+        router.push({
+          pathname: '/photo-preview',
+          params: { photoUri: photo.uri },
+        });
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    }
+  };
+
+  const handleCancel = () => router.back();
 
   if (!permission) {
     return (
@@ -44,16 +88,10 @@ export default function CameraScreen() {
           <Text style={styles.permissionText}>
             meomow needs camera access to take photos of cats for your catalog.
           </Text>
-          <TouchableOpacity 
-            style={styles.permissionButton} 
-            onPress={requestPermission}
-          >
+          <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
             <Text style={styles.permissionButtonText}>Grant Camera Access</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.cancelButton} 
-            onPress={() => router.back()}
-          >
+          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
         </View>
@@ -61,65 +99,64 @@ export default function CameraScreen() {
     );
   }
 
-  const toggleCameraFacing = () => {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
-  };
-
-  const takePicture = async () => {
-    if (cameraRef.current) {
-      try {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.8,
-          base64: false,
-        });
-
-        if (photo) {
-          router.push({
-            pathname: '/photo-preview',
-            params: { photoUri: photo.uri }
-          });
-        }
-      } catch (error) {
-        Alert.alert('Error', 'Failed to take photo. Please try again.');
-      }
-    }
-  };
-
-  const handleCancel = () => {
-    router.back();
-  };
+  const flashIcon =
+    flash === 'off' ? (
+      <ZapOff size={22} color="white" />
+    ) : (
+      <Zap size={22} color="white" />
+    );
 
   return (
     <View style={styles.container}>
-      <CameraView 
-        style={styles.camera} 
-        facing={facing} 
+      <CameraView
         ref={cameraRef}
+        style={styles.camera}
+        facing={facing}
+        zoom={zoom}
+        // Cast to any to appease types across SDK versions.
+        flash={flash as any}
       >
         <SafeAreaView style={styles.cameraControls}>
+          {/* Top bar: close + flip + (flash quick toggle) */}
           <View style={styles.topControls}>
-            <TouchableOpacity 
-              style={styles.controlButton} 
-              onPress={handleCancel}
-            >
-              <X size={28} color="white" />
+            <TouchableOpacity style={styles.circleBtn} onPress={handleCancel}>
+              <X size={24} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.controlButton} 
-              onPress={toggleCameraFacing}
-            >
-              <RotateCcw size={28} color="white" />
-            </TouchableOpacity>
+
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity style={styles.circleBtn} onPress={cycleFlash}>
+                {flashIcon}
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.circleBtn} onPress={toggleCameraFacing}>
+                <RotateCcw size={24} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
-          
+
+          {/* Bottom bar: zoom -, label, +  |  shutter  |  flash mode text */}
           <View style={styles.bottomControls}>
-            <TouchableOpacity 
-              style={styles.shutterButton} 
-              onPress={takePicture}
-              activeOpacity={0.8}
-            >
-              <View style={styles.shutterButtonInner} />
-            </TouchableOpacity>
+            <View style={styles.bottomRow}>
+              {/* Zoom cluster */}
+              <View style={styles.zoomCluster}>
+                <TouchableOpacity style={styles.smallBtn} onPress={zoomOut}>
+                  <Minus size={20} color="white" />
+                </TouchableOpacity>
+                <Text style={styles.zoomLabel}>{`${(1 + zoom).toFixed(1)}x`}</Text>
+                <TouchableOpacity style={styles.smallBtn} onPress={zoomIn}>
+                  <Plus size={20} color="white" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Shutter */}
+              <TouchableOpacity style={styles.shutterButton} onPress={takePicture} activeOpacity={0.85}>
+                <View style={styles.shutterButtonInner} />
+              </TouchableOpacity>
+
+              {/* Flash mode text */}
+              <View style={styles.flashPill}>
+                <Text style={styles.flashText}>{flash}</Text>
+              </View>
+            </View>
           </View>
         </SafeAreaView>
       </CameraView>
@@ -128,42 +165,68 @@ export default function CameraScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.black,
-  },
-  camera: {
-    flex: 1,
-  },
-  cameraControls: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
+  container: { flex: 1, backgroundColor: Colors.black },
+  camera: { flex: 1 },
+  cameraControls: { flex: 1, backgroundColor: 'transparent' },
+
   topControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 10,
   },
+
   bottomControls: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 34,
     left: 0,
     right: 0,
-    alignItems: 'center',
+    paddingHorizontal: 16,
   },
-  controlButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  bottomRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  circleBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'center',
     alignItems: 'center',
   },
+
+  smallBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  zoomCluster: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    width: width * 0.32,
+    justifyContent: 'flex-start',
+  },
+  zoomLabel: {
+    minWidth: 48,
+    textAlign: 'center',
+    fontFamily: 'Jua-Regular',
+    fontSize: 16,
+    color: 'white',
+  },
+
   shutterButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
@@ -171,11 +234,28 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   shutterButtonInner: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: 'white',
   },
+
+  flashPill: {
+    width: width * 0.32,
+    alignItems: 'flex-end',
+  },
+  flashText: {
+    textTransform: 'uppercase',
+    fontFamily: 'Jua-Regular',
+    fontSize: 12,
+    color: 'white',
+    opacity: 0.9,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderRadius: 14,
+  },
+
   permissionContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -211,20 +291,7 @@ const styles = StyleSheet.create({
     color: Colors.button.primaryText,
     textAlign: 'center',
   },
-  cancelButton: {
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-  },
-  cancelButtonText: {
-    fontFamily: 'Jua-Regular',
-    fontSize: 16,
-    color: Colors.primary.text,
-    textAlign: 'center',
-  },
-  message: {
-    fontFamily: 'Jua-Regular',
-    fontSize: 16,
-    color: Colors.white,
-    textAlign: 'center',
-  },
+  cancelButton: { paddingHorizontal: 32, paddingVertical: 16 },
+  cancelButtonText: { fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.primary.text, textAlign: 'center' },
+  message: { fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.white, textAlign: 'center' },
 });
