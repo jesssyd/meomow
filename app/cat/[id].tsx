@@ -245,4 +245,197 @@ export default function CatDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, b
+  container: { flex: 1, backgroundColor: Colors.primary.backgroundAlt },
+  center: { justifyContent: 'center', alignItems: 'center' },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: Colors.primary.background,
+  },
+  headerButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  headerTitle: {
+    flex: 1,
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.heading,
+    color: Colors.primary.text,
+    textAlign: 'center',
+  },
+
+  content: { flex: 1 },
+
+  // Gallery
+  galleryContainer: {
+    backgroundColor: Colors.primary.background,
+    paddingTop: 16,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+  },
+  galleryTitle: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.heading,
+    color: Colors.primary.text,
+    marginBottom: 12,
+    textTransform: 'lowercase',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  gridItem: {
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(56, 48, 41, 0.1)',
+  },
+  gridImage: { width: '100%', height: '100%' },
+  gridPlaceholder: {
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(56, 48, 41, 0.1)',
+  },
+  placeholderText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    opacity: 0.5,
+  },
+  photoMeta: {
+    fontFamily: 'Jua-Regular',
+    fontSize: 12,
+    color: Colors.primary.text,
+    opacity: 0.7,
+    marginTop: 8,
+  },
+
+  // Details
+  detailsContainer: { flex: 1, paddingHorizontal: 20, paddingTop: 20 },
+  catName: {
+    fontFamily: 'Jua-Regular',
+    fontSize: 32,
+    color: Colors.primary.text,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  lastUpdated: {
+    fontFamily: 'Jua-Regular',
+    fontSize: 14,
+    color: Colors.primary.text,
+    opacity: 0.6,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  locationText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    marginLeft: 8,
+  },
+
+  infoSection: { marginBottom: 20 },
+  sectionTitle: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.heading,
+    color: Colors.primary.text,
+    marginBottom: 12,
+    textTransform: 'lowercase',
+  },
+  infoGrid: { gap: 8 },
+  infoItem: { flexDirection: 'row', alignItems: 'center' },
+  infoLabel: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
+
+  personalitySection: { marginBottom: 20 },
+  personalityContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  personalityChip: {
+    backgroundColor: Colors.personality.selected.background,
+    borderColor: Colors.personality.selected.border,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  personalityText: { fontFamily: 'Jua-Regular', fontSize: 14, color: Colors.personality.selected.text },
+
+  notesSection: { marginBottom: 20 },
+  notesContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 48, 41, 0.1)',
+  },
+  notesText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    lineHeight: 22,
+  },
+
+  noDataText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    opacity: 0.6,
+    fontStyle: 'italic',
+  },
+
+  editButton: {
+    backgroundColor: Colors.button.primary,
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  editButtonText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.heading,
+    color: Colors.button.primaryText,
+  },
+
+  backButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: Colors.button.primary,
+    borderRadius: 8,
+  },
+  backButtonText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.button.primaryText,
+  },
+
+  // Debug
+  debugSection: {
+    marginBottom: 20,
+    padding: 16,
+    backgroundColor: 'rgba(255, 0, 0, 0.1)',
+    borderRadius: 8,
+  },
+  debugTitle: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  debugText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: 12,
+    color: Colors.primary.text,
+    opacity: 0.8,
+    marginBottom: 4,
+  },
+
+  loadingText: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, marginTop: 12 },
+  errorText: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
+});
