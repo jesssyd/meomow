@@ -21,7 +21,9 @@ import { CatStorage } from '@/utils/storage';
 import { LocationService } from '@/utils/location';
 import { PersonalityChip } from '@/components/PersonalityChip';
 import Select from '@/components/Select';
+import { useFocusEffect } from 'expo-router';
 import { PhotoInbox } from '@/utils/photoInbox';
+
 
 const PERSONALITY_OPTIONS = [
   'shy','silly','sweet','moody','loud','friendly','playful','sleepy','energetic'
@@ -51,17 +53,18 @@ export default function AddCatScreen() {
   const isEditing = !!catId;
 
   // Pick up any newly confirmed photos when you return from the camera/preview
-  useFocusEffect(
-    useCallback(() => {
-      const newOnes = PhotoInbox.consumeAll();
-      if (newOnes.length) {
-        setFormData(prev => ({
-          ...prev,
-          photoUris: [...prev.photoUris, ...newOnes].slice(0, 3), // cap at 3
-        }));
-      }
-    }, [])
-  );
+useFocusEffect(
+  useCallback(() => {
+    const newOnes = PhotoInbox.consumeAll();
+    if (newOnes.length) {
+      setFormData(prev => ({
+        ...prev,
+        photoUris: [...prev.photoUris, ...newOnes].slice(0, 3), // cap at 3
+      }));
+    }
+  }, [])
+);
+
 
   useEffect(() => {
     if (isEditing && catId) {
