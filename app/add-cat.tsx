@@ -1,5 +1,4 @@
-// app/add-cat.tsx
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,7 +10,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Camera, MapPin, RefreshCw, X as XIcon } from 'lucide-react-native';
 import uuid from 'react-native-uuid';
@@ -22,12 +21,14 @@ import { CatStorage } from '@/utils/storage';
 import { LocationService } from '@/utils/location';
 import { PersonalityChip } from '@/components/PersonalityChip';
 import Select from '@/components/Select';
+import { PhotoInbox } from '@/utils/photoInbox';
 
-const PERSONALITY_OPTIONS = ['shy', 'silly', 'sweet', 'moody', 'loud', 'friendly', 'playful', 'sleepy', 'energetic'];
-const BREEDS = ['tabby', 'calico', 'siamese', 'persian', 'maine coon', 'bengal', 'ragdoll', 'sphynx', 'british shorthair', 'other'];
-const AGES = ['kitten (0-1 year)', 'young (1-3 years)', 'adult (3-7 years)', 'senior (7+ years)'];
+const PERSONALITY_OPTIONS = [
+  'shy','silly','sweet','moody','loud','friendly','playful','sleepy','energetic'
+];
 
-const MAX_PHOTOS = 3;
+const BREEDS = ['tabby','calico','siamese','persian','maine coon','bengal','ragdoll','sphynx','british shorthair','other'];
+const AGES = ['kitten (0-1 year)','young (1-3 years)','adult (3-7 years)','senior (7+ years)'];
 
 const initialForm = {
   name: '',
@@ -41,108 +42,93 @@ const initialForm = {
 
 export default function AddCatScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const incomingPhotoUri = typeof params.photoUri === 'string' ? params.photoUri : undefined;
-  const catId = typeof params.catId === 'string' ? params.catId : undefined;
+  const { catId } = useLocalSearchParams<{ catId?: string }>();
 
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [formData, setFormData] = useState({ ...initialForm });
 
-  // prevent double-append when the screen re-renders with same param
-  const lastAppended = useRef<string | null>(null);
-
   const isEditing = !!catId;
+
+  // Pick up any newly confirmed photos when you return from the camera/preview
+  useFocusEffect(
+    useCallback(() => {
+      const newOnes = PhotoInbox.consumeAll();
+      if (newOnes.length) {
+        setFormData(prev => ({
+          ...prev,
+          photoUris: [...prev.photoUris, ...newOnes].slice(0, 3), // cap at 3
+        }));
+      }
+    }, [])
+  );
 
   useEffect(() => {
     if (isEditing && catId) {
-      loadExistingCat();
+      (async () => {
+        setLoading(true);
+        try {
+          const cat = await CatStorage.getCatById(catId);
+          if (cat) {
+            setFormData({
+              name: cat.name ?? '',
+              location: cat.location ?? { address: 'Unknown location' },
+              breed: cat.breed ?? '',
+              age: cat.age ?? '',
+              personality: Array.isArray(cat.personality) ? cat.personality : [],
+              notes: cat.notes ?? '',
+              photoUris: (cat.photoUris && cat.photoUris.length ? cat.photoUris : (cat.photoUri ? [cat.photoUri] : [])),
+            });
+          }
+        } finally {
+          setLoading(false);
+        }
+      })();
     } else {
       getCurrentLocation();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [catId]);
 
-  // append confirmed photo from preview
-  useEffect(() => {
-    if (!incomingPhotoUri) return;
-    if (lastAppended.current === incomingPhotoUri) return;
-
-    setFormData((prev) => {
-      if (prev.photoUris.includes(incomingPhotoUri)) return prev;
-      const next = [...prev.photoUris, incomingPhotoUri].slice(-MAX_PHOTOS);
-      return { ...prev, photoUris: next };
-    });
-    lastAppended.current = incomingPhotoUri;
-  }, [incomingPhotoUri]);
-
-  const loadExistingCat = async () => {
-    if (!catId) return;
-    setLoading(true);
-    try {
-      const cat = await CatStorage.getCatById(catId);
-      if (cat) {
-        setFormData({
-          name: cat.name ?? '',
-          location: cat.location ?? { address: 'Unknown location' },
-          breed: cat.breed ?? '',
-          age: cat.age ?? '',
-          personality: Array.isArray(cat.personality) ? cat.personality : [],
-          notes: cat.notes ?? '',
-          photoUris: Array.isArray(cat.photoUris) ? cat.photoUris : [],
-        });
-      }
-    } catch (error) {
-      console.error('Error loading cat:', error);
-      Alert.alert('Error', 'Failed to load cat data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const getCurrentLocation = async () => {
     setLocationLoading(true);
     try {
-      const loc = await LocationService.getCurrentLocation();
-      setFormData((prev) => ({ ...prev, location: loc }));
-    } catch (error) {
-      console.error('Error getting location:', error);
-      setFormData((prev) => ({ ...prev, location: { address: 'Unable to get location' } }));
+      const locationData = await LocationService.getCurrentLocation();
+      setFormData(prev => ({ ...prev, location: locationData }));
+    } catch {
+      setFormData(prev => ({ ...prev, location: { address: 'Unable to get location' } }));
     } finally {
       setLocationLoading(false);
     }
   };
 
-  const resetForm = async () => {
-    setFormData({ ...initialForm });
-    lastAppended.current = null;
-    await getCurrentLocation();
-  };
-
   const handleTakePhoto = () => {
+    // push camera (add-cat stays mounted under it)
     router.push('/camera');
   };
 
-  const handleRemovePhoto = (uri: string) => {
+  const handleDeletePhoto = (index: number) => {
     Alert.alert('Delete photo', 'Are you sure you want to delete this photo?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: () =>
-          setFormData((prev) => ({
-            ...prev,
-            photoUris: prev.photoUris.filter((u) => u !== uri),
-          })),
+        onPress: () => {
+          setFormData(prev => {
+            const next = prev.photoUris.slice();
+            next.splice(index, 1);
+            return { ...prev, photoUris: next };
+          });
+        },
       },
     ]);
   };
 
   const handlePersonalityToggle = (trait: string) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       personality: prev.personality.includes(trait)
-        ? prev.personality.filter((p) => p !== trait)
+        ? prev.personality.filter(p => p !== trait)
         : [...prev.personality, trait],
     }));
   };
@@ -150,7 +136,7 @@ export default function AddCatScreen() {
   const canSave = formData.photoUris.length > 0 && !loading;
 
   const handleSave = async () => {
-    if (formData.photoUris.length === 0) {
+    if (!canSave) {
       Alert.alert('Missing photo', 'Please add at least one photo of the cat.');
       return;
     }
@@ -160,14 +146,16 @@ export default function AddCatScreen() {
       const now = new Date().toISOString();
       const existing = isEditing && catId ? await CatStorage.getCatById(catId) : null;
 
+      const photos = formData.photoUris.slice(0, 3);
+      const latest = photos[photos.length - 1];
+
       const cat: Cat = {
         id: catId || (uuid.v4() as string),
         name: formData.name.trim() || '???',
-        photoUris: formData.photoUris.slice(0, MAX_PHOTOS),
-        location:
-          formData.location?.address?.toLowerCase().includes('getting location')
-            ? { address: 'unknown location' }
-            : formData.location,
+        // keep both fields for compatibility
+        photoUri: latest,
+        photoUris: photos,
+        location: formData.location,
         breed: formData.breed.trim() || 'Unknown',
         age: formData.age.trim() || 'Unknown',
         personality: formData.personality,
@@ -177,19 +165,13 @@ export default function AddCatScreen() {
       };
 
       await CatStorage.saveCat(cat);
-      await resetForm();
+
+      // Reset for next add
+      setFormData({ ...initialForm });
+      await getCurrentLocation();
 
       Alert.alert('Success!', `${cat.name} has been ${isEditing ? 'updated' : 'added to'} your catalog!`, [
-        {
-          text: 'OK',
-          onPress: () => {
-            if (isEditing) {
-              router.back();
-            } else {
-              router.push('/(tabs)/');
-            }
-          },
-        },
+        { text: 'OK', onPress: () => (isEditing ? router.back() : router.push('/(tabs)/')) },
       ]);
     } catch (error) {
       console.error('Error saving cat:', error);
@@ -210,12 +192,10 @@ export default function AddCatScreen() {
     );
   }
 
-  // UI
-  const showAddTile = formData.photoUris.length < MAX_PHOTOS;
+  const canAddMore = formData.photoUris.length < 3;
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={24} color={Colors.primary.text} />
@@ -225,48 +205,40 @@ export default function AddCatScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Photos */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>photos/videos</Text>
 
-          <View style={styles.photoRow}>
-            {formData.photoUris.map((uri) => (
-              <View key={uri} style={styles.thumbWrap}>
-                <Image source={{ uri }} style={styles.thumb} />
-                <TouchableOpacity
-                  style={styles.deleteBadge}
-                  onPress={() => handleRemovePhoto(uri)}
-                  hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-                >
-                  <XIcon size={14} color="white" />
+          {/* Photo grid */}
+          <View style={styles.grid}>
+            {formData.photoUris.map((uri, idx) => (
+              <View key={uri + idx} style={styles.tile}>
+                <Image source={{ uri }} style={styles.tileImg} />
+                <TouchableOpacity style={styles.deleteBadge} onPress={() => handleDeletePhoto(idx)}>
+                  <XIcon size={16} color="#fff" />
                 </TouchableOpacity>
               </View>
             ))}
 
-            {showAddTile && (
-              <TouchableOpacity style={styles.photoButton} onPress={handleTakePhoto}>
+            {canAddMore && (
+              <TouchableOpacity style={[styles.tile, styles.addTile]} onPress={handleTakePhoto}>
                 <Camera size={28} color={Colors.primary.text} />
-                <Text style={styles.photoButtonText}>
-                  {formData.photoUris.length === 0 ? 'take photo' : 'add more'}
-                </Text>
+                <Text style={styles.addTileText}>add</Text>
               </TouchableOpacity>
             )}
           </View>
         </View>
 
-        {/* Name */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>what's their name?</Text>
           <TextInput
             style={styles.textInput}
             value={formData.name}
-            onChangeText={(text) => setFormData((prev) => ({ ...prev, name: text }))}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
             placeholder="add name"
             placeholderTextColor="rgba(56, 48, 41, 0.5)"
           />
         </View>
 
-        {/* Location */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>where did you find them?</Text>
           <TouchableOpacity style={styles.locationContainer} onPress={getCurrentLocation} disabled={locationLoading}>
@@ -274,27 +246,20 @@ export default function AddCatScreen() {
             <Text style={styles.locationText}>
               {locationLoading ? 'Getting location...' : formData.location.address}
             </Text>
-            {locationLoading ? (
-              <ActivityIndicator size="small" color={Colors.primary.text} />
-            ) : (
-              <RefreshCw size={16} color={Colors.primary.text} />
-            )}
+            {locationLoading ? <ActivityIndicator size="small" color={Colors.primary.text} /> : <RefreshCw size={16} color={Colors.primary.text} />}
           </TouchableOpacity>
         </View>
 
-        {/* Breed */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>what kind of cat?</Text>
-          <Select value={formData.breed} options={BREEDS} placeholder="choose" onChange={(v) => setFormData((p) => ({ ...p, breed: v }))} />
+          <Select value={formData.breed} options={BREEDS} placeholder="choose" onChange={(v) => setFormData(p => ({ ...p, breed: v }))} />
         </View>
 
-        {/* Age */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>how old are they?</Text>
-          <Select value={formData.age} options={AGES} placeholder="choose" onChange={(v) => setFormData((p) => ({ ...p, age: v }))} />
+          <Select value={formData.age} options={AGES} placeholder="choose" onChange={(v) => setFormData(p => ({ ...p, age: v }))} />
         </View>
 
-        {/* Personality */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>personality</Text>
           <View style={styles.personalityContainer}>
@@ -309,13 +274,12 @@ export default function AddCatScreen() {
           </View>
         </View>
 
-        {/* Notes */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>notes</Text>
           <TextInput
             style={[styles.textInput, styles.notesInput]}
             value={formData.notes}
-            onChangeText={(text) => setFormData((prev) => ({ ...prev, notes: text }))}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
             placeholder="add notes"
             placeholderTextColor="rgba(56, 48, 41, 0.5)"
             multiline
@@ -327,7 +291,6 @@ export default function AddCatScreen() {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* Save button */}
       <View style={styles.saveButtonContainer}>
         <TouchableOpacity
           style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
@@ -345,52 +308,30 @@ export default function AddCatScreen() {
   );
 }
 
-const TILE = 96;
+const TILE = 100;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.primary.background },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, marginTop: 16 },
-
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   backButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
   headerTitle: { flex: 1, fontFamily: 'Jua-Regular', fontSize: FontSizes.heading, color: Colors.primary.text, textAlign: 'center' },
   headerSpacer: { width: 44 },
-
   content: { flex: 1, paddingHorizontal: 20 },
   section: { marginBottom: 20 },
   sectionLabel: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, marginBottom: 12 },
 
-  photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  thumbWrap: { width: TILE, height: TILE, borderRadius: 8, overflow: 'hidden', position: 'relative', backgroundColor: 'rgba(56,48,41,0.1)' },
-  thumb: { width: '100%', height: '100%' },
-  deleteBadge: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#FF3B30',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  photoButton: {
-    width: TILE,
-    height: TILE,
-    backgroundColor: 'rgba(56, 48, 41, 0.05)',
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: 'rgba(56, 48, 41, 0.2)',
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  photoButtonText: { fontFamily: 'Jua-Regular', fontSize: 12, color: Colors.primary.text, marginTop: 6 },
+  // photo grid
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  tile: { width: TILE, height: TILE, borderRadius: 8, overflow: 'hidden', backgroundColor: 'rgba(56,48,41,0.07)', justifyContent: 'center', alignItems: 'center' },
+  tileImg: { width: '100%', height: '100%' },
+  addTile: { borderWidth: 2, borderColor: 'rgba(56, 48, 41, 0.2)', borderStyle: 'dashed' },
+  addTileText: { fontFamily: 'Jua-Regular', fontSize: 12, color: Colors.primary.text, marginTop: 4 },
+  deleteBadge: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(255,59,48,0.9)', width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
 
   textInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: 'rgba(255,255,255,0.8)',
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -403,28 +344,15 @@ const styles = StyleSheet.create({
   notesInput: { height: 100, paddingTop: 12 },
 
   locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(56, 48, 41, 0.1)',
+    borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12,
+    borderWidth: 1, borderColor: 'rgba(56, 48, 41, 0.1)',
   },
-  locationText: {
-    flex: 1,
-    fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
-    color: Colors.primary.text,
-    marginLeft: 8,
-    marginRight: 8,
-  },
+  locationText: { flex: 1, fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, marginLeft: 8, marginRight: 8 },
 
   personalityContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-
   bottomSpacer: { height: 100 },
-
   saveButtonContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingBottom: 20, backgroundColor: Colors.primary.background },
   saveButton: { backgroundColor: Colors.button.primary, paddingVertical: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', minHeight: 56 },
   saveButtonDisabled: { backgroundColor: 'rgba(59, 64, 89, 0.5)' },
