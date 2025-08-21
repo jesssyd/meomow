@@ -65,7 +65,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="add-cat" />
         <Stack.Screen name="camera" />
-        <Stack.Screen name="photo-preview" />
+        
         <Stack.Screen name="cat/[id]" />
         <Stack.Screen name="+not-found" />
       </Stack>
