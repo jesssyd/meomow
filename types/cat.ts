@@ -1,26 +1,25 @@
-export interface Cat {
+// types/cat.ts
+export type Coordinates = {
+  latitude: number;
+  longitude: number;
+};
+
+export type LocationData = {
+  address: string;
+  coordinates?: Coordinates;
+};
+
+export type Cat = {
   id: string;
   name: string;
-  photoUri: string;
-  location: {
-    address: string;
-    coordinates?: {
-      latitude: number;
-      longitude: number;
-    };
-  };
+  // multi-photo: newest at the end of the array
+  photoUris: string[];
+
+  location: LocationData;
   breed: string;
   age: string;
   personality: string[];
   notes?: string;
-  dateAdded: string;
-  lastUpdated: string;
-}
-
-export interface LocationData {
-  address: string;
-  coordinates?: {
-    latitude: number;
-    longitude: number;
-  };
-}
+  dateAdded: string;   // ISO
+  lastUpdated: string; // ISO
+};
