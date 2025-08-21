@@ -13,6 +13,8 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, SwitchCamera, Zap, ZapOff, Plus, Minus } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
+import { PhotoInbox } from '@/utils/photoInbox';
+
 
 const { width } = Dimensions.get('window');
 
@@ -54,25 +56,28 @@ export default function CameraScreen() {
   const zoomOut = () => setZoom(z => clamp(z - ZOOM_STEP));
   const zoomIn  = () => setZoom(z => clamp(z + ZOOM_STEP));
 
-  const takePicture = async () => {
-    if (!cameraRef.current) return;
+ const takePicture = async () => {
+  if (!cameraRef.current) return;
 
-    try {
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
-        base64: false,
-      });
+  try {
+    const photo = await cameraRef.current.takePictureAsync({
+      quality: 0.8,
+      base64: false,
+      skipProcessing: true,
+    });
 
-      if (photo) {
-        router.push({
-          pathname: '/photo-preview',
-          params: { photoUri: photo.uri },
-        });
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    if (photo?.uri) {
+      // Put the new photo into the inbox so AddCatScreen can pick it up
+      PhotoInbox.push(photo.uri);
+
+      // Close the camera to go back to AddCatScreen
+      router.back();
     }
-  };
+  } catch (error) {
+    Alert.alert('Error', 'Failed to take photo. Please try again.');
+  }
+};
+
 
   const handleCancel = () => router.back();
 
