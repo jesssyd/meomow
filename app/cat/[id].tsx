@@ -22,6 +22,15 @@ import { CatStorage } from '@/utils/storage';
 
 const { width } = Dimensions.get('window');
 
+function formatDate(iso?: string) {
+  if (!iso) return 'unknown date';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return 'unknown date';
+  return d
+    .toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    .toLowerCase();
+}
+
 export default function CatDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -91,7 +100,6 @@ export default function CatDetailScreen() {
   }
 
   const catName = cat.name || '???';
-  const lastUpdated = new Date(cat.lastUpdated).toLocaleDateString();
   
   // Get all photos (prioritize photoUris, fallback to photoUri)
   const allPhotos = cat.photoUris && cat.photoUris.length > 0 
@@ -157,26 +165,26 @@ export default function CatDetailScreen() {
 
         <View style={styles.detailsContainer}>
           <Text style={styles.catName}>{catName}</Text>
-          <Text style={styles.lastUpdated}>last updated: {lastUpdated}</Text>
+          <Text style={styles.lastUpdated}>last updated: {formatDate(cat.lastUpdated)}</Text>
 
           {/* Location */}
-          {cat.location?.address ? (
+          {cat.location?.address && (
             <View style={styles.locationContainer}>
               <MapPin size={16} color={Colors.primary.text} />
               <Text style={styles.locationText}>{cat.location.address}</Text>
             </View>
-          ) : null}
+          )}
 
           {/* Facts */}
           <View style={styles.infoSection}>
             <Text style={styles.sectionTitle}>{catName} is...</Text>
             <View style={styles.infoGrid}>
-              {!!cat.breed && (
+              {cat.breed && cat.breed !== 'Unknown' && (
                 <View style={styles.infoItem}>
                   <Text style={styles.infoLabel}>• a {cat.breed} cat</Text>
                 </View>
               )}
-              {!!cat.age && (
+              {cat.age && cat.age !== 'Unknown' && (
                 <View style={styles.infoItem}>
                   <Text style={styles.infoLabel}>• {cat.age}</Text>
                 </View>
@@ -185,7 +193,7 @@ export default function CatDetailScreen() {
           </View>
 
           {/* Personality */}
-          {Array.isArray(cat.personality) && cat.personality.length > 0 ? (
+          {Array.isArray(cat.personality) && cat.personality.length > 0 && (
             <View style={styles.personalitySection}>
               <View style={styles.personalityContainer}>
                 {cat.personality.map((trait) => (
@@ -195,19 +203,21 @@ export default function CatDetailScreen() {
                 ))}
               </View>
             </View>
-          ) : null}
+          )}
 
           {/* Notes */}
-          {!!cat.notes && (
+          {cat.notes && cat.notes.trim() && (
             <View style={styles.notesSection}>
               <Text style={styles.sectionTitle}>notes</Text>
-              <Text style={styles.notesText}>{cat.notes}</Text>
+              <View style={styles.notesContainer}>
+                <Text style={styles.notesText}>{cat.notes}</Text>
+              </View>
             </View>
           )}
 
-          {/* Delete */}
-          <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-            <Text style={styles.deleteButtonText}>Delete Cat</Text>
+          {/* Edit button styled like in the image */}
+          <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+            <Text style={styles.editButtonText}>edit</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -339,7 +349,14 @@ const styles = StyleSheet.create({
   },
   personalityText: { fontFamily: 'Jua-Regular', fontSize: 14, color: Colors.personality.selected.text },
 
-  notesSection: { marginBottom: 40 },
+  notesSection: { marginBottom: 30 },
+  notesContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 48, 41, 0.1)',
+  },
   notesText: {
     fontFamily: 'Jua-Regular',
     fontSize: FontSizes.body,
@@ -347,14 +364,18 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  deleteButton: {
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+  editButton: {
+    backgroundColor: Colors.button.primary,
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 40,
   },
-  deleteButtonText: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: '#FF3B30' },
+  editButtonText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.heading,
+    color: Colors.button.primaryText,
+  },
 
   loadingText: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, marginTop: 12 },
   errorText: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
