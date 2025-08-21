@@ -1,4 +1,3 @@
-// app/(tabs)/index.tsx
 import { useCallback, useState, useEffect } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -23,6 +22,14 @@ export default function CatalogScreen() {
   const load = useCallback(async () => {
     setLoading(true);
     const all = await CatStorage.getAllCats();
+
+    // Sort newest first by lastUpdated or dateAdded
+    all.sort((a, b) => {
+      const ad = new Date(a.lastUpdated || a.dateAdded || 0).getTime();
+      const bd = new Date(b.lastUpdated || b.dateAdded || 0).getTime();
+      return bd - ad;
+    });
+
     setCats(all);
     setLoading(false);
   }, []);
@@ -52,16 +59,25 @@ export default function CatalogScreen() {
       data={cats}
       keyExtractor={(c) => c.id}
       numColumns={2}
-      renderItem={({ item }) => (
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => router.push(`/cat/${item.id}`)}
-        >
-          <Image source={{ uri: item.photoUri }} style={styles.photo} />
-          <Text style={styles.name}>{item.name || '???'}</Text>
-          <Text style={styles.date}>{formatDate(item.lastUpdated || item.dateAdded)}</Text>
-        </TouchableOpacity>
-      )}
+      renderItem={({ item }) => {
+        const latestPhoto =
+          item.photoUris?.length ? item.photoUris[item.photoUris.length - 1] : (item as any).photoUri;
+
+        return (
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push(`/cat/${item.id}`)}
+          >
+            {latestPhoto ? (
+              <Image source={{ uri: latestPhoto }} style={styles.photo} />
+            ) : (
+              <View style={styles.photo} />
+            )}
+            <Text style={styles.name}>{item.name || '???'}</Text>
+            <Text style={styles.date}>{formatDate(item.lastUpdated || item.dateAdded)}</Text>
+          </TouchableOpacity>
+        );
+      }}
     />
   );
 }
