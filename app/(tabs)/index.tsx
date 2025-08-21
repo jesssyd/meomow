@@ -61,7 +61,9 @@ export default function CatalogScreen() {
       numColumns={2}
       renderItem={({ item }) => {
         const latestPhoto =
-          item.photoUris?.length ? item.photoUris[item.photoUris.length - 1] : (item as any).photoUri;
+          item.photoUris && item.photoUris.length > 0 
+            ? item.photoUris[item.photoUris.length - 1] 
+            : item.photoUri;
 
         return (
           <TouchableOpacity

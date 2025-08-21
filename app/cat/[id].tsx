@@ -9,6 +9,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,12 +20,15 @@ import { FontSizes } from '@/constants/Fonts';
 import { Cat } from '@/types/cat';
 import { CatStorage } from '@/utils/storage';
 
+const { width } = Dimensions.get('window');
+
 export default function CatDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [cat, setCat] = useState<Cat | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -88,6 +92,15 @@ export default function CatDetailScreen() {
 
   const catName = cat.name || '???';
   const lastUpdated = new Date(cat.lastUpdated).toLocaleDateString();
+  
+  // Get all photos (prioritize photoUris, fallback to photoUri)
+  const allPhotos = cat.photoUris && cat.photoUris.length > 0 
+    ? cat.photoUris 
+    : cat.photoUri 
+    ? [cat.photoUri] 
+    : [];
+
+  const currentPhoto = allPhotos[currentPhotoIndex] || allPhotos[0];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -105,9 +118,41 @@ export default function CatDetailScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Photo */}
+        {/* Photo Gallery */}
         <View style={styles.imageContainer}>
-          <Image source={{ uri: cat.photoUri }} style={styles.catImage} />
+          {currentPhoto ? (
+            <Image source={{ uri: currentPhoto }} style={styles.catImage} />
+          ) : (
+            <View style={styles.catImage} />
+          )}
+          
+          {/* Photo indicators and navigation */}
+          {allPhotos.length > 1 && (
+            <View style={styles.photoNavigation}>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.photoThumbnails}
+              >
+                {allPhotos.map((photo, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.thumbnail,
+                      index === currentPhotoIndex && styles.activeThumbnail
+                    ]}
+                    onPress={() => setCurrentPhotoIndex(index)}
+                  >
+                    <Image source={{ uri: photo }} style={styles.thumbnailImage} />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              
+              <Text style={styles.photoCounter}>
+                {currentPhotoIndex + 1} of {allPhotos.length}
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.detailsContainer}>
@@ -202,6 +247,39 @@ const styles = StyleSheet.create({
     height: 280,
     borderRadius: 12,
     backgroundColor: 'rgba(56, 48, 41, 0.1)',
+  },
+
+  // Photo navigation
+  photoNavigation: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  photoThumbnails: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 20,
+  },
+  thumbnail: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  activeThumbnail: {
+    borderColor: Colors.primary.text,
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
+  },
+  photoCounter: {
+    fontFamily: 'Jua-Regular',
+    fontSize: 12,
+    color: Colors.primary.text,
+    opacity: 0.7,
+    marginTop: 8,
   },
 
   detailsContainer: { flex: 1, paddingHorizontal: 20, paddingTop: 20 },

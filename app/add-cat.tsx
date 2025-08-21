@@ -21,7 +21,6 @@ import { CatStorage } from '@/utils/storage';
 import { LocationService } from '@/utils/location';
 import { PersonalityChip } from '@/components/PersonalityChip';
 import Select from '@/components/Select';
-import { useFocusEffect } from 'expo-router';
 import { PhotoInbox } from '@/utils/photoInbox';
 
 
@@ -170,8 +169,10 @@ useFocusEffect(
       await CatStorage.saveCat(cat);
 
       // Reset for next add
-      setFormData({ ...initialForm });
-      await getCurrentLocation();
+      if (!isEditing) {
+        setFormData({ ...initialForm });
+        await getCurrentLocation();
+      }
 
       Alert.alert('Success!', `${cat.name} has been ${isEditing ? 'updated' : 'added to'} your catalog!`, [
         { text: 'OK', onPress: () => (isEditing ? router.back() : router.push('/(tabs)/')) },
