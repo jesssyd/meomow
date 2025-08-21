@@ -44,10 +44,18 @@ export default function CatDetailScreen() {
     (async () => {
       if (!id) return;
       setLoading(true);
-      const data = await CatStorage.getCatById(id);
-      if (alive) {
-        setCat(data);
-        setLoading(false);
+      try {
+        const data = await CatStorage.getCatById(id);
+        console.log('Loaded cat data:', data); // Debug log
+        if (alive) {
+          setCat(data);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error loading cat:', error);
+        if (alive) {
+          setLoading(false);
+        }
       }
     })();
     return () => {
@@ -75,20 +83,30 @@ export default function CatDetailScreen() {
       <SafeAreaView style={[styles.container, styles.center]}>
         <Stack.Screen options={{ headerShown: false }} />
         <Text style={styles.errorText}>Cat not found</Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
 
-  const catName = cat.name || '???';
+  const catName = cat.name || 'Unknown Cat';
   
-  // Get all photos (prioritize photoUris, fallback to photoUri)
-  const allPhotos = cat.photoUris && cat.photoUris.length > 0 
-    ? cat.photoUris 
-    : cat.photoUri 
-    ? [cat.photoUri] 
-    : [];
+  // Get ALL photos - try multiple approaches to ensure we get them
+  let allPhotos: string[] = [];
+  
+  // First try photoUris (new format)
+  if (cat.photoUris && Array.isArray(cat.photoUris) && cat.photoUris.length > 0) {
+    allPhotos = cat.photoUris.filter(uri => uri && uri.trim()); // Remove empty strings
+  }
+  // Fallback to single photoUri (old format)
+  else if (cat.photoUri && cat.photoUri.trim()) {
+    allPhotos = [cat.photoUri];
+  }
 
-  const currentPhoto = allPhotos[currentPhotoIndex] || allPhotos[0];
+  console.log('All photos for cat:', allPhotos); // Debug log
+
+  const currentPhoto = allPhotos.length > 0 ? allPhotos[currentPhotoIndex] || allPhotos[0] : null;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -106,15 +124,21 @@ export default function CatDetailScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Photo Gallery */}
+        {/* Photo Gallery - ALWAYS SHOW THIS SECTION */}
         <View style={styles.imageContainer}>
           {currentPhoto ? (
-            <Image source={{ uri: currentPhoto }} style={styles.catImage} />
+            <Image 
+              source={{ uri: currentPhoto }} 
+              style={styles.catImage}
+              onError={(error) => console.log('Image load error:', error)}
+            />
           ) : (
-            <View style={styles.catImage} />
+            <View style={[styles.catImage, styles.placeholderImage]}>
+              <Text style={styles.placeholderText}>No Photo</Text>
+            </View>
           )}
           
-          {/* Photo indicators and navigation */}
+          {/* Photo indicators and navigation - show if multiple photos */}
           {allPhotos.length > 1 && (
             <View style={styles.photoNavigation}>
               <ScrollView 
@@ -124,7 +148,7 @@ export default function CatDetailScreen() {
               >
                 {allPhotos.map((photo, index) => (
                   <TouchableOpacity
-                    key={index}
+                    key={`${photo}-${index}`}
                     style={[
                       styles.thumbnail,
                       index === currentPhotoIndex && styles.activeThumbnail
@@ -141,59 +165,93 @@ export default function CatDetailScreen() {
               </Text>
             </View>
           )}
+          
+          {/* Always show photo count for debugging */}
+          <Text style={styles.debugText}>
+            Photos found: {allPhotos.length}
+          </Text>
         </View>
 
         <View style={styles.detailsContainer}>
+          {/* Cat Name - ALWAYS SHOW */}
           <Text style={styles.catName}>{catName}</Text>
-          <Text style={styles.lastUpdated}>last updated: {formatDate(cat.lastUpdated)}</Text>
+          <Text style={styles.lastUpdated}>
+            last updated: {formatDate(cat.lastUpdated || cat.dateAdded)}
+          </Text>
 
-          {/* Location - show if available */}
-          {cat.location?.address && (
-            <View style={styles.locationContainer}>
-              <MapPin size={16} color={Colors.primary.text} />
-              <Text style={styles.locationText}>{cat.location.address}</Text>
-            </View>
-          )}
+          {/* Location - ALWAYS SHOW SECTION */}
+          <View style={styles.locationContainer}>
+            <MapPin size={16} color={Colors.primary.text} />
+            <Text style={styles.locationText}>
+              {(cat.location?.address && cat.location.address.trim()) 
+                ? cat.location.address 
+                : 'Location not specified'
+              }
+            </Text>
+          </View>
 
-          {/* Facts section - show actual data */}
+          {/* Facts section - ALWAYS SHOW */}
           <View style={styles.infoSection}>
             <Text style={styles.sectionTitle}>{catName} is...</Text>
             <View style={styles.infoGrid}>
-              {cat.breed && cat.breed !== 'Unknown' && (
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>• a {cat.breed.toLowerCase()} cat</Text>
-                </View>
-              )}
-              {cat.age && cat.age !== 'Unknown' && (
-                <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>• {cat.age.toLowerCase()}</Text>
-                </View>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>
+                  • a {(cat.breed && cat.breed.trim() && cat.breed !== 'Unknown') 
+                      ? cat.breed.toLowerCase() 
+                      : 'mystery'} cat
+                </Text>
+              </View>
+              <View style={styles.infoItem}>
+                <Text style={styles.infoLabel}>
+                  • {(cat.age && cat.age.trim() && cat.age !== 'Unknown') 
+                      ? cat.age.toLowerCase() 
+                      : 'age unknown'}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Personality - ALWAYS SHOW SECTION */}
+          <View style={styles.personalitySection}>
+            <Text style={styles.sectionTitle}>personality</Text>
+            <View style={styles.personalityContainer}>
+              {(Array.isArray(cat.personality) && cat.personality.length > 0) ? (
+                cat.personality.map((trait, index) => (
+                  <View key={`${trait}-${index}`} style={styles.personalityChip}>
+                    <Text style={styles.personalityText}>{trait}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.noDataText}>No personality traits specified</Text>
               )}
             </View>
           </View>
 
-          {/* Personality - show actual data */}
-          {Array.isArray(cat.personality) && cat.personality.length > 0 && (
-            <View style={styles.personalitySection}>
-              <View style={styles.personalityContainer}>
-                {cat.personality.map((trait) => (
-                  <View key={trait} style={styles.personalityChip}>
-                    <Text style={styles.personalityText}>{trait}</Text>
-                  </View>
-                ))}
-              </View>
+          {/* Notes - ALWAYS SHOW SECTION */}
+          <View style={styles.notesSection}>
+            <Text style={styles.sectionTitle}>notes</Text>
+            <View style={styles.notesContainer}>
+              <Text style={styles.notesText}>
+                {(cat.notes && cat.notes.trim()) 
+                  ? cat.notes 
+                  : 'No notes added yet'
+                }
+              </Text>
             </View>
-          )}
+          </View>
 
-          {/* Notes - show actual data */}
-          {cat.notes && cat.notes.trim() && (
-            <View style={styles.notesSection}>
-              <Text style={styles.sectionTitle}>notes</Text>
-              <View style={styles.notesContainer}>
-                <Text style={styles.notesText}>{cat.notes}</Text>
-              </View>
-            </View>
-          )}
+          {/* Debug info - remove this after testing */}
+          <View style={styles.debugSection}>
+            <Text style={styles.debugTitle}>Debug Info:</Text>
+            <Text style={styles.debugText}>ID: {cat.id}</Text>
+            <Text style={styles.debugText}>Name: {cat.name || 'No name'}</Text>
+            <Text style={styles.debugText}>Breed: {cat.breed || 'No breed'}</Text>
+            <Text style={styles.debugText}>Age: {cat.age || 'No age'}</Text>
+            <Text style={styles.debugText}>Personality: {cat.personality?.length || 0} traits</Text>
+            <Text style={styles.debugText}>Notes: {cat.notes ? 'Yes' : 'No'}</Text>
+            <Text style={styles.debugText}>PhotoUri: {cat.photoUri ? 'Yes' : 'No'}</Text>
+            <Text style={styles.debugText}>PhotoUris: {cat.photoUris?.length || 0} photos</Text>
+          </View>
 
           {/* Edit button */}
           <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
@@ -237,6 +295,16 @@ const styles = StyleSheet.create({
     height: 280,
     borderRadius: 12,
     backgroundColor: 'rgba(56, 48, 41, 0.1)',
+  },
+  placeholderImage: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    opacity: 0.5,
   },
 
   // Photo navigation
@@ -329,7 +397,7 @@ const styles = StyleSheet.create({
   },
   personalityText: { fontFamily: 'Jua-Regular', fontSize: 14, color: Colors.personality.selected.text },
 
-  notesSection: { marginBottom: 30 },
+  notesSection: { marginBottom: 20 },
   notesContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 8,
@@ -344,17 +412,60 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
+  noDataText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    opacity: 0.6,
+    fontStyle: 'italic',
+  },
+
   editButton: {
     backgroundColor: Colors.button.primary,
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
   },
   editButtonText: {
     fontFamily: 'Jua-Regular',
     fontSize: FontSizes.heading,
     color: Colors.button.primaryText,
+  },
+
+  backButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: Colors.button.primary,
+    borderRadius: 8,
+  },
+  backButtonText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.button.primaryText,
+  },
+
+  // Debug styles - remove these after testing
+  debugSection: {
+    marginBottom: 20,
+    padding: 16,
+    backgroundColor: 'rgba(255, 0, 0, 0.1)',
+    borderRadius: 8,
+  },
+  debugTitle: {
+    fontFamily: 'Jua-Regular',
+    fontSize: FontSizes.body,
+    color: Colors.primary.text,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  debugText: {
+    fontFamily: 'Jua-Regular',
+    fontSize: 12,
+    color: Colors.primary.text,
+    opacity: 0.8,
+    marginBottom: 4,
   },
 
   loadingText: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, marginTop: 12 },
