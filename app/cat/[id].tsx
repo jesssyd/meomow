@@ -60,26 +60,6 @@ export default function CatDetailScreen() {
     router.push({ pathname: '/add-cat', params: { catId: cat.id } });
   };
 
-  const handleDelete = () => {
-    if (!cat) return;
-    Alert.alert(
-      'Delete Cat',
-      `Are you sure you want to delete ${cat.name || 'this cat'} from your catalog?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            const ok = await CatStorage.deleteCat(cat.id);
-            if (ok) router.back();
-            else Alert.alert('Error', 'Failed to delete cat. Please try again.');
-          },
-        },
-      ],
-    );
-  };
-
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.center]}>
@@ -167,7 +147,7 @@ export default function CatDetailScreen() {
           <Text style={styles.catName}>{catName}</Text>
           <Text style={styles.lastUpdated}>last updated: {formatDate(cat.lastUpdated)}</Text>
 
-          {/* Location */}
+          {/* Location - show if available */}
           {cat.location?.address && (
             <View style={styles.locationContainer}>
               <MapPin size={16} color={Colors.primary.text} />
@@ -175,24 +155,24 @@ export default function CatDetailScreen() {
             </View>
           )}
 
-          {/* Facts */}
+          {/* Facts section - show actual data */}
           <View style={styles.infoSection}>
             <Text style={styles.sectionTitle}>{catName} is...</Text>
             <View style={styles.infoGrid}>
               {cat.breed && cat.breed !== 'Unknown' && (
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>• a {cat.breed} cat</Text>
+                  <Text style={styles.infoLabel}>• a {cat.breed.toLowerCase()} cat</Text>
                 </View>
               )}
               {cat.age && cat.age !== 'Unknown' && (
                 <View style={styles.infoItem}>
-                  <Text style={styles.infoLabel}>• {cat.age}</Text>
+                  <Text style={styles.infoLabel}>• {cat.age.toLowerCase()}</Text>
                 </View>
               )}
             </View>
           </View>
 
-          {/* Personality */}
+          {/* Personality - show actual data */}
           {Array.isArray(cat.personality) && cat.personality.length > 0 && (
             <View style={styles.personalitySection}>
               <View style={styles.personalityContainer}>
@@ -205,7 +185,7 @@ export default function CatDetailScreen() {
             </View>
           )}
 
-          {/* Notes */}
+          {/* Notes - show actual data */}
           {cat.notes && cat.notes.trim() && (
             <View style={styles.notesSection}>
               <Text style={styles.sectionTitle}>notes</Text>
@@ -215,7 +195,7 @@ export default function CatDetailScreen() {
             </View>
           )}
 
-          {/* Edit button styled like in the image */}
+          {/* Edit button */}
           <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
             <Text style={styles.editButtonText}>edit</Text>
           </TouchableOpacity>
