@@ -221,19 +221,6 @@ export default function CatDetailScreen() {
             </View>
           </View>
 
-          {/* Debug */}
-          <View style={styles.debugSection}>
-            <Text style={styles.debugTitle}>Debug Info:</Text>
-            <Text style={styles.debugText}>ID: {cat.id}</Text>
-            <Text style={styles.debugText}>Name: {cat.name || 'No name'}</Text>
-            <Text style={styles.debugText}>Breed: {cat.breed || 'No breed'}</Text>
-            <Text style={styles.debugText}>Age: {cat.age || 'No age'}</Text>
-            <Text style={styles.debugText}>Personality: {cat.personality?.length || 0} traits</Text>
-            <Text style={styles.debugText}>Notes: {cat.notes ? 'Yes' : 'No'}</Text>
-            <Text style={styles.debugText}>PhotoUri: {cat.photoUri ? 'Yes' : 'No'}</Text>
-            <Text style={styles.debugText}>PhotoUris: {cat.photoUris?.length || 0} photos</Text>
-          </View>
-
           {/* Edit button */}
           <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
             <Text style={styles.editButtonText}>edit</Text>
@@ -412,28 +399,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Jua-Regular',
     fontSize: FontSizes.body,
     color: Colors.button.primaryText,
-  },
-
-  // Debug
-  debugSection: {
-    marginBottom: 20,
-    padding: 16,
-    backgroundColor: 'rgba(255, 0, 0, 0.1)',
-    borderRadius: 8,
-  },
-  debugTitle: {
-    fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
-    color: Colors.primary.text,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  debugText: {
-    fontFamily: 'Jua-Regular',
-    fontSize: 12,
-    color: Colors.primary.text,
-    opacity: 0.8,
-    marginBottom: 4,
   },
 
   loadingText: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, marginTop: 12 },
