@@ -23,7 +23,6 @@ import { PersonalityChip } from '@/components/PersonalityChip';
 import Select from '@/components/Select';
 import { PhotoInbox } from '@/utils/photoInbox';
 
-
 const PERSONALITY_OPTIONS = [
   'shy','silly','sweet','moody','loud','friendly','playful','sleepy','energetic'
 ];
@@ -51,19 +50,39 @@ export default function AddCatScreen() {
 
   const isEditing = !!catId;
 
-  // Pick up any newly confirmed photos when you return from the camera/preview
-useFocusEffect(
-  useCallback(() => {
-    const newOnes = PhotoInbox.consumeAll();
-    if (newOnes.length) {
-      setFormData(prev => ({
-        ...prev,
-        photoUris: [...prev.photoUris, ...newOnes].slice(0, 3), // cap at 3
-      }));
-    }
-  }, [])
-);
+  // DEBUG: Add console logs to track photo state changes
+  useEffect(() => {
+    console.log('🔍 DEBUG: formData.photoUris changed:', formData.photoUris);
+    console.log('🔍 DEBUG: formData.photoUris.length:', formData.photoUris.length);
+  }, [formData.photoUris]);
 
+  // Pick up any newly confirmed photos when you return from the camera/preview
+  useFocusEffect(
+    useCallback(() => {
+      console.log('🎯 DEBUG: useFocusEffect triggered');
+      const newOnes = PhotoInbox.consumeAll();
+      console.log('🎯 DEBUG: PhotoInbox.consumeAll() returned:', newOnes);
+      console.log('🎯 DEBUG: newOnes.length:', newOnes.length);
+      
+      if (newOnes.length) {
+        console.log('🎯 DEBUG: Before adding new photos, current photoUris:', formData.photoUris);
+        
+        setFormData(prev => {
+          const combined = [...prev.photoUris, ...newOnes];
+          const capped = combined.slice(0, 3); // cap at 3
+          
+          console.log('🎯 DEBUG: prev.photoUris:', prev.photoUris);
+          console.log('🎯 DEBUG: combined photos:', combined);
+          console.log('🎯 DEBUG: capped photos:', capped);
+          
+          return {
+            ...prev,
+            photoUris: capped,
+          };
+        });
+      }
+    }, []) // Remove formData dependency to avoid stale closure
+  );
 
   useEffect(() => {
     if (isEditing && catId) {
@@ -71,7 +90,20 @@ useFocusEffect(
         setLoading(true);
         try {
           const cat = await CatStorage.getCatById(catId);
+          console.log('🔍 DEBUG: Loaded cat for editing:', cat);
+          console.log('🔍 DEBUG: cat.photoUris:', cat?.photoUris);
+          console.log('🔍 DEBUG: cat.photoUri:', cat?.photoUri);
+          
           if (cat) {
+            // Ensure we're using the photoUris array properly
+            const photoUris = cat.photoUris && cat.photoUris.length > 0 
+              ? cat.photoUris 
+              : cat.photoUri 
+                ? [cat.photoUri] 
+                : [];
+                
+            console.log('🔍 DEBUG: Final photoUris for form:', photoUris);
+            
             setFormData({
               name: cat.name ?? '',
               location: cat.location ?? { address: 'Unknown location' },
@@ -79,7 +111,7 @@ useFocusEffect(
               age: cat.age ?? '',
               personality: Array.isArray(cat.personality) ? cat.personality : [],
               notes: cat.notes ?? '',
-              photoUris: (cat.photoUris && cat.photoUris.length ? cat.photoUris : (cat.photoUri ? [cat.photoUri] : [])),
+              photoUris: photoUris,
             });
           }
         } finally {
@@ -89,7 +121,6 @@ useFocusEffect(
     } else {
       getCurrentLocation();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [catId]);
 
   const getCurrentLocation = async () => {
@@ -105,11 +136,15 @@ useFocusEffect(
   };
 
   const handleTakePhoto = () => {
+    console.log('📸 DEBUG: handleTakePhoto called, current photoUris:', formData.photoUris);
     // push camera (add-cat stays mounted under it)
     router.push('/camera');
   };
 
   const handleDeletePhoto = (index: number) => {
+    console.log('🗑️ DEBUG: handleDeletePhoto called for index:', index);
+    console.log('🗑️ DEBUG: Current photoUris:', formData.photoUris);
+    
     Alert.alert('Delete photo', 'Are you sure you want to delete this photo?', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -117,8 +152,9 @@ useFocusEffect(
         style: 'destructive',
         onPress: () => {
           setFormData(prev => {
-            const next = prev.photoUris.slice();
+            const next = [...prev.photoUris]; // Create a new array
             next.splice(index, 1);
+            console.log('🗑️ DEBUG: After deletion, photoUris:', next);
             return { ...prev, photoUris: next };
           });
         },
@@ -143,6 +179,9 @@ useFocusEffect(
       return;
     }
 
+    console.log('💾 DEBUG: handleSave called');
+    console.log('💾 DEBUG: formData.photoUris:', formData.photoUris);
+    
     setLoading(true);
     try {
       const now = new Date().toISOString();
@@ -150,6 +189,9 @@ useFocusEffect(
 
       const photos = formData.photoUris.slice(0, 3);
       const latest = photos[photos.length - 1];
+
+      console.log('💾 DEBUG: photos to save:', photos);
+      console.log('💾 DEBUG: latest photo:', latest);
 
       const cat: Cat = {
         id: catId || (uuid.v4() as string),
@@ -166,7 +208,11 @@ useFocusEffect(
         lastUpdated: now,
       };
 
-      await CatStorage.saveCat(cat);
+      console.log('💾 DEBUG: Final cat object:', cat);
+      console.log('💾 DEBUG: cat.photoUris:', cat.photoUris);
+
+      const savedCat = await CatStorage.saveCat(cat);
+      console.log('💾 DEBUG: Saved cat returned:', savedCat);
 
       // Reset for next add
       if (!isEditing) {
@@ -209,13 +255,27 @@ useFocusEffect(
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* DEBUG INFO SECTION - Remove this after debugging */}
+        <View style={[styles.section, { backgroundColor: 'rgba(255,0,0,0.1)', padding: 10, marginBottom: 10 }]}>
+          <Text style={[styles.sectionLabel, { color: 'red' }]}>DEBUG INFO (Remove after fixing)</Text>
+          <Text style={{ fontSize: 12, color: 'red' }}>
+            PhotoUris count: {formData.photoUris.length}
+          </Text>
+          <Text style={{ fontSize: 12, color: 'red' }}>
+            PhotoUris: {JSON.stringify(formData.photoUris, null, 2)}
+          </Text>
+          <Text style={{ fontSize: 12, color: 'red' }}>
+            Can add more: {canAddMore ? 'Yes' : 'No'}
+          </Text>
+        </View>
+
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>photos/videos</Text>
+          <Text style={styles.sectionLabel}>photos/videos ({formData.photoUris.length}/3)</Text>
 
           {/* Photo grid */}
           <View style={styles.grid}>
             {formData.photoUris.map((uri, idx) => (
-              <View key={uri + idx} style={styles.tile}>
+              <View key={`${uri}-${idx}`} style={styles.tile}>
                 <Image source={{ uri }} style={styles.tileImg} />
                 <TouchableOpacity style={styles.deleteBadge} onPress={() => handleDeletePhoto(idx)}>
                   <XIcon size={16} color="#fff" />
