@@ -2,6 +2,7 @@ import { View, Image, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
+import { FontSizes } from '@/constants/fonts';
 
 export default function PhotoPreviewScreen() {
   const router = useRouter();
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: 'Jua-Regular',
-    fontSize: 16,
+    ...FontSizes.body,
     color: Colors.white,
   },
   primaryButtonText: {
