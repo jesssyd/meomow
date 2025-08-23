@@ -169,7 +169,7 @@ export default function CatDetailScreen() {
             <Text style={styles.locationText}>
               {cat.location?.address && cat.location.address.trim()
                 ? cat.location.address
-                : 'Location not specified'}
+                : 'location not specified'}
             </Text>
           </View>
 
@@ -179,7 +179,7 @@ export default function CatDetailScreen() {
             <View style={styles.infoGrid}>
               <View style={styles.infoItem}>
                 <Text style={styles.infoLabel}>
-                  • a {cat.breed && cat.breed.trim() && cat.breed !== 'Unknown'
+                  • a {cat.breed && cat.breed.trim() && cat.breed !== 'unknown'
                     ? cat.breed.toLowerCase()
                     : 'mystery'}{' '}
                   cat
