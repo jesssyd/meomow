@@ -238,7 +238,7 @@ export default function AddCatScreen() {
             {canAddMore && (
               <TouchableOpacity style={[styles.tile, styles.addTile]} onPress={handleTakePhoto}>
                 <Camera size={28} color={Colors.primary.text} />
-                <Text style={styles.addTileText}>add</Text>
+                <Text style={styles.addTileText}>add photo</Text>
               </TouchableOpacity>
             )}
           </View>
