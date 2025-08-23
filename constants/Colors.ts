@@ -1,5 +1,6 @@
 const Palette = {
   darkbrown: 'rgb(61, 52, 45)',
+  medbrown: 'rgba(61, 52, 45, 0.25)',
   lightbrown: 'rgba(61, 52, 45, 0.1)',
   pink: 'rgb(251, 226, 208)',
   tan: 'rgb(253, 248, 228)',
@@ -41,6 +42,11 @@ export const Colors = {
     background: Palette.pink,
     shadow: 'rgba(0, 0, 0, 0.1)',
   },
+  input: {
+    background: Palette.cream,
+    border: Palette.medbrown,
+  }, 
   black: '#000000',
   white: '#FFFFFF',
+  
 };
