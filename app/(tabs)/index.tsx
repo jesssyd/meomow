@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   },
   list: { 
     flex: 1,
-    backgroundColor: Colors.primary.backgroundAlt,
+    color: Colors.primary.backgroundAlt,
   },
   listContent: { 
     padding: 16, 
