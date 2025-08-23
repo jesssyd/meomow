@@ -14,6 +14,7 @@ export const Colors = {
     background: Palette.pink, // pink
     backgroundAlt: Palette.tan, // tan
     backgroundGreen: Palette.green, // green
+    backgroundCream: Palette.cream,
     splash: 'rgb(48, 43, 38)', // not sure about this
   },
   personality: {
@@ -29,7 +30,7 @@ export const Colors = {
     },
   },
   navigation: {
-    background: Palette.tan,
+    background: Palette.cream,
     border: Palette.lightbrown,
   },
   button: {
