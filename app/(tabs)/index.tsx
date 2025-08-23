@@ -37,50 +37,67 @@ export default function CatalogScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.loading}>loading kitties...</Text>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>catalog</Text>
+          <Text style={styles.subtitle}>your inventory</Text>
+        </View>
+        <View style={styles.center}>
+          <Text style={styles.loading}>loading kitties...</Text>
+        </View>
       </View>
     );
   }
 
   if (cats.length === 0) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.emptyHeading}>meow! no cats here...</Text>
-        <Text style={styles.emptyBody}>tap + to add your first kitty</Text>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>catalog</Text>
+          <Text style={styles.subtitle}>your inventory</Text>
+        </View>
+        <View style={styles.center}>
+          <Text style={styles.emptyHeading}>meow! no cats here...</Text>
+          <Text style={styles.emptyBody}>tap + to add your first kitty</Text>
+        </View>
       </View>
     );
   }
 
   return (
-    <FlatList
-      style={styles.container}
-      contentContainerStyle={styles.list}
-      data={cats}
-      keyExtractor={(c) => c.id}
-      numColumns={2}
-      renderItem={({ item }) => {
-        const latestPhoto =
-          item.photoUris && item.photoUris.length > 0 
-            ? item.photoUris[item.photoUris.length - 1] 
-            : item.photoUri;
-
-        return (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push(`/cat/${item.id}`)}
-          >
-            {latestPhoto ? (
-              <Image source={{ uri: latestPhoto }} style={styles.photo} />
-            ) : (
-              <View style={styles.photo} />
-            )}
-            <Text style={styles.name}>{item.name || '???'}</Text>
-            <Text style={styles.date}>{formatDate(item.lastUpdated || item.dateAdded)}</Text>
-          </TouchableOpacity>
-        );
-      }}
-    />
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>catalog</Text>
+        <Text style={styles.subtitle}>your inventory</Text>
+      </View>
+      <FlatList
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
+        data={cats}
+        keyExtractor={(c) => c.id}
+        numColumns={2}
+        renderItem={({ item }) => {
+          const latestPhoto =
+            item.photoUris && item.photoUris.length > 0 
+              ? item.photoUris[item.photoUris.length - 1] 
+              : item.photoUri;
+          return (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => router.push(`/cat/${item.id}`)}
+            >
+              {latestPhoto ? (
+                <Image source={{ uri: latestPhoto }} style={styles.photo} />
+              ) : (
+                <View style={styles.photo} />
+              )}
+              <Text style={styles.name}>{item.name || '???'}</Text>
+              <Text style={styles.date}>{formatDate(item.lastUpdated || item.dateAdded)}</Text>
+            </TouchableOpacity>
+          );
+        }}
+      />
+    </View>
   );
 }
 
@@ -89,15 +106,32 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: Colors.primary.background 
   },
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 60, // Account for status bar
+    paddingBottom: 16,
+    backgroundColor: Colors.primary.background
+  },
+  title: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.heading,
+    color: Colors.primary.text
+  },
+  subtitle: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.body,
+    color: Colors.primary.textInactive,
+    marginTop: 4
+  },
   center: { 
     flex: 1, 
     justifyContent: 'center', 
-    alignItems: 'center', 
+    alignItems: 'center',
     backgroundColor: Colors.primary.backgroundAlt 
   },
   loading: { 
     fontFamily: 'Jua-Regular', 
-    ...FontSizes.body, // Spread the FontSizes object (includes fontSize and lineHeight)
+    ...FontSizes.body,
     color: Colors.primary.text 
   },
   emptyBody: { 
@@ -114,6 +148,9 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   list: { 
+    flex: 1
+  },
+  listContent: { 
     padding: 16, 
     gap: 16 
   },
