@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 60, // Account for status bar
     paddingBottom: 16,
-    backgroundColor: Colors.primary.background
+    backgroundColor: Colors.primary.backgroundAlt
   },
   title: {
     fontFamily: 'Jua-Regular',
