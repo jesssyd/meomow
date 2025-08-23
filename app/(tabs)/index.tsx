@@ -104,7 +104,7 @@ export default function CatalogScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: Colors.primary.background 
+    backgroundColor: Colors.primary.backgroundAlt 
   },
   header: {
     paddingHorizontal: 16,
