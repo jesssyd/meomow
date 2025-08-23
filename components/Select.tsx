@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     maxHeight: 200,
     borderRadius: 8,
-    backgroundColor: 'white',
+    backgroundColor: Colors.input.background,
     borderWidth: 1,
     borderColor: 'rgba(56,48,41,0.12)',
     elevation: 3,
