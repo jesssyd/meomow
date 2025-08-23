@@ -1,13 +1,43 @@
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
-import {BookOpen as Home, CirclePlus, CircleUserRound } from 'lucide-react-native';
+import { Platform, View } from 'react-native';
+import { BookOpen as Home, CirclePlus, CircleUserRound } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
+
+function IconWithCircle({
+  Icon,
+  size,
+  color,
+  focused,
+  bump = 0,
+}: {
+  Icon: any;
+  size: number;
+  color: string;
+  focused: boolean;
+  bump?: number;
+}) {
+  return (
+    <View
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: focused ? Colors.primary.backgroundGreen : 'transparent',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Icon size={size + bump} color={color} strokeWidth={2.5} />
+    </View>
+  );
+}
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
+        tabBarShowLabel: false,
         tabBarStyle: {
           backgroundColor: Colors.navigation.background,
           borderTopColor: Colors.navigation.border,
@@ -19,7 +49,11 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors.primary.text,
         tabBarInactiveTintColor: Colors.primary.text,
         tabBarIconStyle: {
-          marginTop: 4,
+          marginTop: 0,
+        },
+        tabBarItemStyle: {
+          alignItems: 'center',
+          justifyContent: 'center',
         },
       }}
     >
@@ -28,11 +62,7 @@ export default function TabLayout() {
         options={{
           title: '',
           tabBarIcon: ({ size, color, focused }) => (
-            <Home 
-              size={size} 
-              color={color} 
-              strokeWidth={2}
-            />
+            <IconWithCircle Icon={Home} size={size} color={color} focused={focused} />
           ),
         }}
       />
@@ -41,11 +71,7 @@ export default function TabLayout() {
         options={{
           title: '',
           tabBarIcon: ({ size, color, focused }) => (
-            <CirclePlus
-              size={size + 4} 
-              color={color} 
-              strokeWidth={2}
-            />
+            <IconWithCircle Icon={CirclePlus} size={size} color={color} focused={focused} bump={4} />
           ),
         }}
         listeners={({ navigation }) => ({
@@ -60,11 +86,7 @@ export default function TabLayout() {
         options={{
           title: '',
           tabBarIcon: ({ size, color, focused }) => (
-            <CircleUserRound 
-              size={size} 
-              color={color} 
-              strokeWidth={2}
-            />
+            <IconWithCircle Icon={CircleUserRound} size={size} color={color} focused={focused} />
           ),
         }}
       />
