@@ -16,7 +16,6 @@ export function PersonalityChip({ label, selected, onPress }: PersonalityChipPro
         selected ? styles.selectedChip : styles.unselectedChip
       ]}
       onPress={() => onPress(label)}
-      activeOpacity={0.8}
     >
       <Text
         style={[
