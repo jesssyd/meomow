@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: Colors.input.background,
     borderWidth: 1,
-    borderColor: 'rgba(56,48,41,0.12)',
+    borderColor: Colors.input.border,
     elevation: 3,
     shadowColor: '#000',
     shadowOpacity: 0.1,
