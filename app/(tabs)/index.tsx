@@ -148,8 +148,7 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   list: { 
-    flex: 1,
-    color: Colors.primary.backgroundAlt,
+    flex: 1
   },
   listContent: { 
     padding: 16, 
