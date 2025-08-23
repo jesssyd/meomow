@@ -15,6 +15,7 @@ import { X, SwitchCamera, Zap, ZapOff, Plus, Minus } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { PhotoInbox } from '@/utils/photoInbox';
 
+
 const { width } = Dimensions.get('window');
 
 type FlashMode = 'off' | 'on' | 'torch';
@@ -29,8 +30,11 @@ export default function CameraScreen() {
   const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
 
-  // Remove the manual permission request useEffect
-  // Let expo-camera handle it natively when CameraView tries to render
+  useEffect(() => {
+    if (permission && !permission.granted && permission.canAskAgain) {
+      requestPermission();
+    }
+  }, [permission]);
 
   const clamp = (v: number, min = 0, max = 1) => Math.min(max, Math.max(min, v));
 
@@ -52,31 +56,31 @@ export default function CameraScreen() {
   const zoomOut = () => setZoom(z => clamp(z - ZOOM_STEP));
   const zoomIn  = () => setZoom(z => clamp(z + ZOOM_STEP));
 
-  const takePicture = async () => {
-    if (!cameraRef.current) return;
+ const takePicture = async () => {
+  if (!cameraRef.current) return;
 
-    try {
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
-        base64: false,
-        skipProcessing: true,
-      });
+  try {
+    const photo = await cameraRef.current.takePictureAsync({
+      quality: 0.8,
+      base64: false,
+      skipProcessing: true,
+    });
 
-      if (photo?.uri) {
-        // Put the new photo into the inbox so AddCatScreen can pick it up
-        PhotoInbox.push(photo.uri);
+    if (photo?.uri) {
+      // Put the new photo into the inbox so AddCatScreen can pick it up
+      PhotoInbox.push(photo.uri);
 
-        // Close the camera to go back to AddCatScreen
-        router.back();
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to take photo. Please try again.');
+      // Close the camera to go back to AddCatScreen
+      router.back();
     }
-  };
+  } catch (error) {
+    Alert.alert('Error', 'Failed to take photo. Please try again.');
+  }
+};
+
 
   const handleCancel = () => router.back();
 
-  // Only show loading if permission is still being determined
   if (!permission) {
     return (
       <View style={styles.container}>
@@ -85,17 +89,19 @@ export default function CameraScreen() {
     );
   }
 
-  // If permission is denied and can't ask again, show a simple message
-  if (!permission.granted && !permission.canAskAgain) {
+  if (!permission.granted) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.permissionContainer}>
-          <Text style={styles.permissionTitle}>Camera Access Denied</Text>
+          <Text style={styles.permissionTitle}>Camera Access Needed</Text>
           <Text style={styles.permissionText}>
-            Please enable camera access in Settings to take photos of cats.
+            meomow needs camera access to take photos of cats for your catalog.
           </Text>
+          <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+            <Text style={styles.permissionButtonText}>Grant Camera Access</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-            <Text style={styles.cancelButtonText}>Go Back</Text>
+            <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -106,7 +112,7 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Camera view - this will trigger native permission dialog if needed */}
+      {/* Simple camera view without gesture detection */}
       <CameraView
         ref={cameraRef}
         style={styles.camera}
@@ -274,6 +280,13 @@ const styles = StyleSheet.create({
   permissionText: {
     fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.primary.text,
     textAlign: 'center', marginBottom: 30, lineHeight: 22,
+  },
+  permissionButton: {
+    backgroundColor: Colors.button.primary, paddingHorizontal: 32,
+    paddingVertical: 16, borderRadius: 8, marginBottom: 12,
+  },
+  permissionButtonText: {
+    fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.button.primaryText, textAlign: 'center',
   },
   cancelButton: { paddingHorizontal: 32, paddingVertical: 16 },
   cancelButtonText: { fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.primary.text, textAlign: 'center' },
