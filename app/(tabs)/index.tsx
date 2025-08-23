@@ -40,7 +40,7 @@ export default function CatalogScreen() {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>catalog</Text>
-          <Text style={styles.subtitle}>your inventory</Text>
+          <Text style={styles.subtitle}>...</Text>
         </View>
         <View style={styles.center}>
           <Text style={styles.loading}>loading kitties...</Text>
@@ -54,7 +54,7 @@ export default function CatalogScreen() {
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>catalog</Text>
-          <Text style={styles.subtitle}>your inventory</Text>
+          <Text style={styles.subtitle}>0 kitties found</Text>
         </View>
         <View style={styles.center}>
           <Text style={styles.emptyHeading}>meow! no cats here...</Text>
@@ -68,7 +68,7 @@ export default function CatalogScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>catalog</Text>
-        <Text style={styles.subtitle}>your inventory</Text>
+        <Text style={styles.subtitle}>{cats.length } {cats.length == 1 ? kitty : kitties } found</Text>
       </View>
       <FlatList
         style={styles.list}
