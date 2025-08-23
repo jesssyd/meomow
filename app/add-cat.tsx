@@ -260,7 +260,7 @@ export default function AddCatScreen() {
           <TouchableOpacity style={styles.locationContainer} onPress={getCurrentLocation} disabled={locationLoading}>
             <MapPin size={16} color={Colors.primary.text} />
             <Text style={styles.locationText}>
-              {locationLoading ? 'Getting location...' : formData.location.address}
+              {locationLoading ? 'getting location...' : formData.location.address}
             </Text>
             {locationLoading ? <ActivityIndicator size="small" color={Colors.primary.text} /> : <RefreshCw size={16} color={Colors.primary.text} />}
           </TouchableOpacity>
