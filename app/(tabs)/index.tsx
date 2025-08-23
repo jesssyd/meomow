@@ -68,7 +68,7 @@ export default function CatalogScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>catalog</Text>
-        <Text style={styles.subtitle}>{cats.length } {cats.length == 1 ? kitty : kitties } found</Text>
+        <Text style={styles.subtitle}>{cats.length } {cats.length === 1 ? 'kitty' : 'kitties' } found</Text>
       </View>
       <FlatList
         style={styles.list}
