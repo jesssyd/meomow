@@ -52,6 +52,10 @@ export const Colors = {
     background: Palette.cream,
     border: Palette.medbrown,
   }, 
+  inputAlt: {
+    background: Palette.lightbrown,
+    border: Palette.medbrown,
+  },
   black: '#000000',
   white: '#FFFFFF',
   
