@@ -3,6 +3,7 @@ const Palette = {
   lightbrown: 'rgba(61, 52, 45, 0.1)',
   pink: 'rgb(251, 226, 208)',
   tan: 'rgb(253, 248, 228)',
+  cream: 'rgb(255, 253, 245)',
   green: 'rgb(203, 223, 189)',
   navy: 'rgb(59, 64, 89)',
 };
