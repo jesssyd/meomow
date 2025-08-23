@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+// Icons stroke width set to 2.5 for a slightly thicker look.
 import { ArrowLeft, MapPin, Pencil } from 'lucide-react-native';
 
 import { Colors } from '@/constants/Colors';
@@ -103,6 +104,8 @@ export default function CatDetailScreen() {
   const thumbSize =
     (width - H_PADDING * 2 - GAP * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
 
+  const hasNotes = !!(cat.notes && cat.notes.trim());
+
   return (
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -110,11 +113,11 @@ export default function CatDetailScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <ArrowLeft size={24} color={Colors.primary.text} />
+          <ArrowLeft size={24} color={Colors.primary.text} strokeWidth={2.5} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{catName}</Text>
         <TouchableOpacity style={styles.headerButton} onPress={handleEdit}>
-          <Pencil size={20} color={Colors.primary.text} />
+          <Pencil size={20} color={Colors.primary.text} strokeWidth={2.5} />
         </TouchableOpacity>
       </View>
 
@@ -147,14 +150,14 @@ export default function CatDetailScreen() {
             </View>
           ) : (
             <View style={[styles.gridPlaceholder, { height: thumbSize }]}>
-              <Text style={styles.placeholderText}>No Photos</Text>
+              <Text style={styles.placeholderText}>no photos</Text>
             </View>
           )}
         </View>
 
         {/* Location below photos */}
         <View style={styles.locationContainer}>
-          <MapPin size={16} color={Colors.primary.text} />
+          <MapPin size={16} color={Colors.primary.text} strokeWidth={2.5} />
           <Text style={styles.locationText}>
             {cat.location?.address && cat.location.address.trim()
               ? cat.location.address
@@ -192,7 +195,9 @@ export default function CatDetailScreen() {
                   </View>
                 ))
               ) : (
-                <Text style={styles.noDataText}>No personality traits specified</Text>
+                <Text style={[styles.noDataText, styles.inactiveText]}>
+                  no personality traits specified
+                </Text>
               )}
             </View>
           </View>
@@ -200,8 +205,8 @@ export default function CatDetailScreen() {
           {/* Notes */}
           <View style={styles.notesSection}>
             <Text style={styles.sectionTitle}>notes</Text>
-            <Text style={styles.notesText}>
-              {cat.notes && cat.notes.trim() ? cat.notes : 'No notes added yet'}
+            <Text style={[styles.notesText, !hasNotes && styles.inactiveText]}>
+              {hasNotes ? cat.notes : 'no notes added yet'}
             </Text>
           </View>
         </View>
@@ -336,8 +341,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Jua-Regular',
     ...FontSizes.body,
     color: Colors.primary.text,
-    opacity: 0.6,
     fontStyle: 'italic',
+  },
+
+  inactiveText: {
+    color: Colors.primary.textInactive,
   },
 
   backButton: {
