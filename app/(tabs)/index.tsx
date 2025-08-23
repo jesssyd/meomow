@@ -85,7 +85,7 @@ export default function CatalogScreen() {
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.primary.backgroundTan },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.primary.backgroundAlt },
   loading: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
   empty: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
   list: { padding: 16, gap: 16 },
