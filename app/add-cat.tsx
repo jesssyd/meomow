@@ -238,7 +238,7 @@ export default function AddCatScreen() {
             {canAddMore && (
               <TouchableOpacity style={[styles.tile, styles.addTile]} onPress={handleTakePhoto}>
                 <Camera size={28} color={Colors.primary.text} />
-                <Text style={styles.addTileText}>add photo</Text>
+                <Text style={styles.addTileText}>add</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -247,19 +247,19 @@ export default function AddCatScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>what's their name?</Text>
           <TextInput
-            style={styles.textInput}
+            style={styles.inputField}
             value={formData.name}
             onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
             placeholder="add name"
-            placeholderTextColor="rgba(56, 48, 41, 0.5)"
+            placeholderTextColor={Colors.primary.textInactive}
           />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>where did you find them?</Text>
-          <TouchableOpacity style={styles.locationContainer} onPress={getCurrentLocation} disabled={locationLoading}>
+          <TouchableOpacity style={styles.inputField} onPress={getCurrentLocation} disabled={locationLoading}>
             <MapPin size={16} color={Colors.primary.text} />
-            <Text style={styles.locationText}>
+            <Text style={styles.inputFieldText}>
               {locationLoading ? 'getting location...' : formData.location.address}
             </Text>
             {locationLoading ? <ActivityIndicator size="small" color={Colors.primary.text} /> : <RefreshCw size={16} color={Colors.primary.text} />}
@@ -293,11 +293,11 @@ export default function AddCatScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>notes</Text>
           <TextInput
-            style={[styles.textInput, styles.notesInput]}
+            style={[styles.inputField, styles.notesInput]}
             value={formData.notes}
             onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
             placeholder="add notes"
-            placeholderTextColor="rgba(56, 48, 41, 0.5)"
+            placeholderTextColor={Colors.primary.textInactive}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
@@ -327,82 +327,172 @@ export default function AddCatScreen() {
 const TILE = 100;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.primary.background },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { 
-    fontFamily: 'Jua-Regular', 
-    ...FontSizes.body, 
-    color: Colors.primary.text, 
-    marginTop: 16 
+  // Layout
+  container: {
+    flex: 1,
+    backgroundColor: Colors.primary.background,
   },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
-  backButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { 
-    flex: 1, 
-    fontFamily: 'Jua-Regular', 
-    ...FontSizes.heading, 
-    color: Colors.primary.text, 
-    textAlign: 'center' 
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
   },
-  headerSpacer: { width: 44 },
-  content: { flex: 1, paddingHorizontal: 20 },
-  section: { marginBottom: 20 },
-  sectionLabel: { 
-    fontFamily: 'Jua-Regular', 
-    ...FontSizes.body, 
-    color: Colors.primary.text, 
-    marginBottom: 12 
+  section: {
+    marginBottom: 20,
   },
 
-  // photo grid
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  tile: { width: TILE, height: TILE, borderRadius: 8, overflow: 'hidden', backgroundColor: 'rgba(56,48,41,0.07)', justifyContent: 'center', alignItems: 'center' },
-  tileImg: { width: '100%', height: '100%' },
-  addTile: { borderWidth: 2, borderColor: 'rgba(56, 48, 41, 0.2)', borderStyle: 'dashed' },
-  addTileText: { 
-    fontFamily: 'Jua-Regular', 
-    ...FontSizes.caption,
-    color: Colors.primary.text, 
-    marginTop: 4 
+  // Loading
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  deleteBadge: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(255,59,48,0.9)', width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-
-  textInput: {
-    backgroundColor: 'rgba(255,255,255,0.8)',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  loadingText: {
     fontFamily: 'Jua-Regular',
     ...FontSizes.body,
     color: Colors.primary.text,
+    marginTop: 16,
+  },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    flex: 1,
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.heading,
+    color: Colors.primary.text,
+    textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 44,
+  },
+
+  // Section labels
+  sectionLabel: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.body,
+    color: Colors.primary.text,
+    marginBottom: 12,
+  },
+
+  // Input fields (consistent styling)
+  inputField: {
+    backgroundColor: Colors.input.background,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderWidth: 1,
-    borderColor: 'rgba(56, 48, 41, 0.1)',
+    borderColor: Colors.input.border,
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.body,
+    color: Colors.primary.text,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  notesInput: { height: 100, paddingTop: 12 },
+  inputFieldText: {
+    flex: 1,
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.body,
+    color: Colors.primary.text,
+    marginLeft: 8,
+    marginRight: 8,
+  },
+  notesInput: {
+    height: 100,
+    paddingTop: 12,
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
 
-  locationContainer: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12,
-    borderWidth: 1, borderColor: 'rgba(56, 48, 41, 0.1)',
+  // Photo grid
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
   },
-  locationText: { 
-    flex: 1, 
-    fontFamily: 'Jua-Regular', 
-    ...FontSizes.body, 
-    color: Colors.primary.text, 
-    marginLeft: 8, 
-    marginRight: 8 
+  tile: {
+    width: TILE,
+    height: TILE,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(56,48,41,0.07)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tileImg: {
+    width: '100%',
+    height: '100%',
+  },
+  addTile: {
+    backgroundColor: Colors.inputAlt.background,
+    borderWidth: 2,
+    borderColor: Colors.inputAlt.border,
+    borderStyle: 'dashed',
+  },
+  addTileText: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.caption,
+    color: Colors.primary.text,
+    marginTop: 4,
+  },
+  deleteBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: 'rgba(255,59,48,0.9)',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
-  personalityContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  bottomSpacer: { height: 100 },
-  saveButtonContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingBottom: 20, backgroundColor: Colors.primary.background },
-  saveButton: { backgroundColor: Colors.button.primary, paddingVertical: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', minHeight: 56 },
-  saveButtonDisabled: { backgroundColor: Colors.button.disabled },
-  saveButtonText: { 
-    fontFamily: 'Jua-Regular', 
-    ...FontSizes.heading, 
-    color: Colors.button.primaryText 
+  // Personality
+  personalityContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+
+  // Save button
+  saveButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    backgroundColor: Colors.primary.background,
+  },
+  saveButton: {
+    backgroundColor: Colors.button.primary,
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 56,
+  },
+  saveButtonDisabled: {
+    backgroundColor: Colors.button.disabled,
+  },
+  saveButtonText: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.heading,
+    color: Colors.button.primaryText,
+  },
+
+  // Spacing
+  bottomSpacer: {
+    height: 100,
   },
 });
