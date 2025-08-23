@@ -16,6 +16,7 @@ const Palette = {
 export const Colors = {
   primary: {
     text: Palette.darkbrown,
+    textInactive: Palette.darkbrowninactive,
     background: Palette.pink, // pink
     backgroundAlt: Palette.tan, // tan
     backgroundGreen: Palette.green, // green
