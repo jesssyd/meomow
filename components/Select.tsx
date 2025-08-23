@@ -1,6 +1,7 @@
 // components/Select.tsx
 import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { ChevronDown } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { FontSizes } from '@/constants/Fonts';
 
@@ -18,9 +19,8 @@ export default function Select({ value, options, placeholder = 'choose', onChang
     <View style={styles.wrapper}>
       <Pressable style={styles.trigger} onPress={() => setOpen((o) => !o)}>
         <Text style={styles.triggerText}>{value || placeholder}</Text>
-        <Text style={styles.chev}>▾</Text>
+        <ChevronDown size={20} color={Colors.primary.text} style={styles.chevIcon} />
       </Pressable>
-
       {open && (
         <View style={styles.dropdown}>
           <ScrollView
