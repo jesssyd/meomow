@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   bottomSpacer: { height: 100 },
   saveButtonContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingBottom: 20, backgroundColor: Colors.primary.background },
   saveButton: { backgroundColor: Colors.button.primary, paddingVertical: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', minHeight: 56 },
-  saveButtonDisabled: { backgroundColor: 'rgba(59, 64, 89, 0.5)' },
+  saveButtonDisabled: { backgroundColor: Colors.button.disabled },
   saveButtonText: { 
     fontFamily: 'Jua-Regular', 
     ...FontSizes.heading, 
