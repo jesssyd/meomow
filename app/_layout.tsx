@@ -61,11 +61,16 @@ export default function RootLayout() {
   // App shell
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }} initialRouteName="(tabs)">
+      <Stack 
+        screenOptions={{ 
+          headerShown: false,
+          gestureEnabled: false // Disable swipe-to-go-back for all screens
+        }} 
+        initialRouteName="(tabs)"
+      >
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="add-cat" />
         <Stack.Screen name="camera" />
-        
         <Stack.Screen name="cat/[id]" />
         <Stack.Screen name="+not-found" />
       </Stack>
