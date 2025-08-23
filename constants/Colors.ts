@@ -40,7 +40,7 @@ export const Colors = {
   },
   button: {
     primary: Palette.navy,
-    inactive: Palette.navyinactive,
+    disabled: Palette.navyinactive,
     primaryText: 'white',
   },
   card: {
