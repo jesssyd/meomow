@@ -15,7 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Camera, MapPin, RefreshCw, X as XIcon } from 'lucide-react-native';
 import uuid from 'react-native-uuid';
 
-import { Colors, FontSizes } from '@/constants';
+import { Colors } from '@/constants/Colors';
+import { FontSizes } from '@/constants/fonts';
 import { Cat } from '@/types/cat';
 import { CatStorage } from '@/utils/storage';
 import { LocationService } from '@/utils/location';
@@ -24,7 +25,7 @@ import Select from '@/components/Select';
 import { PhotoInbox } from '@/utils/photoInbox';
 
 const PERSONALITY_OPTIONS = [
-  'shy','silly','sweet','moody','loud','friendly','playful','sleepy','energetic'
+  'shy','silly','sweet','moody','vocal','friendly','playful','sleepy','energetic', 'mean', 'scared', 'curious', 'affectionate', 'boring', 'grumpy'
 ];
 
 const BREEDS = ['tabby','calico','siamese','persian','maine coon','bengal','ragdoll','sphynx','british shorthair','other'];
@@ -328,21 +329,42 @@ const TILE = 100;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.primary.background },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  loadingText: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, marginTop: 16 },
+  loadingText: { 
+    fontFamily: 'Jua-Regular', 
+    ...FontSizes.body, 
+    color: Colors.primary.text, 
+    marginTop: 16 
+  },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   backButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { flex: 1, fontFamily: 'Jua-Regular', fontSize: FontSizes.heading, color: Colors.primary.text, textAlign: 'center' },
+  headerTitle: { 
+    flex: 1, 
+    fontFamily: 'Jua-Regular', 
+    ...FontSizes.heading, 
+    color: Colors.primary.text, 
+    textAlign: 'center' 
+  },
   headerSpacer: { width: 44 },
   content: { flex: 1, paddingHorizontal: 20 },
   section: { marginBottom: 20 },
-  sectionLabel: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, marginBottom: 12 },
+  sectionLabel: { 
+    fontFamily: 'Jua-Regular', 
+    ...FontSizes.body, 
+    color: Colors.primary.text, 
+    marginBottom: 12 
+  },
 
   // photo grid
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   tile: { width: TILE, height: TILE, borderRadius: 8, overflow: 'hidden', backgroundColor: 'rgba(56,48,41,0.07)', justifyContent: 'center', alignItems: 'center' },
   tileImg: { width: '100%', height: '100%' },
   addTile: { borderWidth: 2, borderColor: 'rgba(56, 48, 41, 0.2)', borderStyle: 'dashed' },
-  addTileText: { fontFamily: 'Jua-Regular', fontSize: 12, color: Colors.primary.text, marginTop: 4 },
+  addTileText: { 
+    fontFamily: 'Jua-Regular', 
+    fontSize: 12, 
+    color: Colors.primary.text, 
+    marginTop: 4 
+  },
   deleteBadge: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(255,59,48,0.9)', width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
 
   textInput: {
@@ -351,7 +373,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
+    ...FontSizes.body,
     color: Colors.primary.text,
     borderWidth: 1,
     borderColor: 'rgba(56, 48, 41, 0.1)',
@@ -364,12 +386,23 @@ const styles = StyleSheet.create({
     borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12,
     borderWidth: 1, borderColor: 'rgba(56, 48, 41, 0.1)',
   },
-  locationText: { flex: 1, fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, marginLeft: 8, marginRight: 8 },
+  locationText: { 
+    flex: 1, 
+    fontFamily: 'Jua-Regular', 
+    ...FontSizes.body, 
+    color: Colors.primary.text, 
+    marginLeft: 8, 
+    marginRight: 8 
+  },
 
   personalityContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   bottomSpacer: { height: 100 },
   saveButtonContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20, paddingBottom: 20, backgroundColor: Colors.primary.background },
   saveButton: { backgroundColor: Colors.button.primary, paddingVertical: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', minHeight: 56 },
   saveButtonDisabled: { backgroundColor: 'rgba(59, 64, 89, 0.5)' },
-  saveButtonText: { fontFamily: 'Jua-Regular', fontSize: FontSizes.heading, color: Colors.button.primaryText },
+  saveButtonText: { 
+    fontFamily: 'Jua-Regular', 
+    ...FontSizes.heading, 
+    color: Colors.button.primaryText 
+  },
 });
