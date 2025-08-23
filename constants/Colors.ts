@@ -7,6 +7,8 @@ const Palette = {
   cream: 'rgb(255, 253, 245)',
   green: 'rgb(203, 223, 189)',
   navy: 'rgb(59, 64, 89)',
+  darkorange: 'rgb(143, 54, 17)',
+  lightorange: 'rgba(241, 156, 121, 0.5)',
 };
 
 export const Colors = {
