@@ -10,7 +10,7 @@ import LoadingScreen from '@/components/LoadingScreen';
 // Keep the OS/native splash visible until we say otherwise.
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-const MIN_LOADER_MS = 900;    // minimum time the animated loader shows
+const MIN_LOADER_MS = 2000;    // minimum time the animated loader shows
 const MAX_FAILSAFE_MS = 4000; // hard cap to avoid getting stuck
 
 export default function RootLayout() {
