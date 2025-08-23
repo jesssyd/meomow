@@ -31,7 +31,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'catalog',
+          title: '',
           tabBarIcon: ({ size, color, focused }) => (
             <Home 
               size={size} 
@@ -63,12 +63,12 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'profile',
+          title: '',
           tabBarIcon: ({ size, color, focused }) => (
             <CircleUserRound 
               size={size} 
               color={color} 
-              strokeWidth={2.5}
+              strokeWidth={focused ? 2.5 : 2}
             />
           ),
         }}
