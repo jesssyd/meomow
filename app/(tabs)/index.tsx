@@ -22,14 +22,12 @@ export default function CatalogScreen() {
   const load = useCallback(async () => {
     setLoading(true);
     const all = await CatStorage.getAllCats();
-
     // Sort newest first by lastUpdated or dateAdded
     all.sort((a, b) => {
       const ad = new Date(a.lastUpdated || a.dateAdded || 0).getTime();
       const bd = new Date(b.lastUpdated || b.dateAdded || 0).getTime();
       return bd - ad;
     });
-
     setCats(all);
     setLoading(false);
   }, []);
@@ -56,6 +54,7 @@ export default function CatalogScreen() {
 
   return (
     <FlatList
+      style={styles.container}
       contentContainerStyle={styles.list}
       data={cats}
       keyExtractor={(c) => c.id}
@@ -86,13 +85,64 @@ export default function CatalogScreen() {
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.primary.backgroundAlt },
-  loading: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
-  emptyBody: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
-  emptyHeading: { fontFamily: 'Jua-Regular', fontSize: FontSizes.heading, color: Colors.primary.text },
-  list: { padding: 16, gap: 16 },
-  card: { flex: 1, margin: 8, backgroundColor: Colors.card.background, borderRadius: 12, overflow: 'hidden' },
-  photo: { width: '100%', aspectRatio: 1, backgroundColor: 'rgba(56,48,41,0.1)' },
-  name: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, paddingTop: 8, paddingHorizontal: 8, textAlign: 'center' },
-  date: { fontFamily: 'Jua-Regular', fontSize: FontSizes.caption, color: Colors.primary.text, opacity: 0.7, paddingBottom: 8, textAlign: 'center' },
+  container: { 
+    flex: 1, 
+    backgroundColor: Colors.primary.background 
+  },
+  center: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: Colors.primary.backgroundAlt 
+  },
+  loading: { 
+    fontFamily: 'Jua-Regular', 
+    ...FontSizes.body, // Spread the FontSizes object (includes fontSize and lineHeight)
+    color: Colors.primary.text 
+  },
+  emptyBody: { 
+    fontFamily: 'Jua-Regular', 
+    ...FontSizes.body,
+    color: Colors.primary.text,
+    textAlign: 'center',
+    marginTop: 8
+  },
+  emptyHeading: { 
+    fontFamily: 'Jua-Regular', 
+    ...FontSizes.heading,
+    color: Colors.primary.text,
+    textAlign: 'center'
+  },
+  list: { 
+    padding: 16, 
+    gap: 16 
+  },
+  card: { 
+    flex: 1, 
+    margin: 8, 
+    backgroundColor: Colors.card.background, 
+    borderRadius: 12, 
+    overflow: 'hidden' 
+  },
+  photo: { 
+    width: '100%', 
+    aspectRatio: 1, 
+    backgroundColor: 'rgba(56,48,41,0.1)' 
+  },
+  name: { 
+    fontFamily: 'Jua-Regular', 
+    ...FontSizes.body,
+    color: Colors.primary.text, 
+    paddingTop: 8, 
+    paddingHorizontal: 8, 
+    textAlign: 'center' 
+  },
+  date: { 
+    fontFamily: 'Jua-Regular', 
+    ...FontSizes.caption,
+    color: Colors.primary.text, 
+    opacity: 0.7, 
+    paddingBottom: 8, 
+    textAlign: 'center' 
+  },
 });
