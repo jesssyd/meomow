@@ -211,7 +211,7 @@ export default function CatDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.backgroundGreen },
+  container: { flex: 1, backgroundColor: Colors.primary.backgroundGreen },
   center: { justifyContent: 'center', alignItems: 'center' },
 
   header: {
