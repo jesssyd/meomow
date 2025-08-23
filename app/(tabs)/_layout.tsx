@@ -36,7 +36,7 @@ export default function TabLayout() {
             <Home 
               size={size} 
               color={color} 
-              strokeWidth={2.5}
+              strokeWidth={2}
             />
           ),
         }}
@@ -49,7 +49,7 @@ export default function TabLayout() {
             <CirclePlus
               size={size + 4} 
               color={color} 
-              strokeWidth={2.5}
+              strokeWidth={2}
             />
           ),
         }}
@@ -68,7 +68,7 @@ export default function TabLayout() {
             <CircleUserRound 
               size={size} 
               color={color} 
-              strokeWidth={2.5}
+              strokeWidth={2}
             />
           ),
         }}
