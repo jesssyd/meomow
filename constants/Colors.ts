@@ -1,9 +1,19 @@
+const Palette = {
+  darkbrown: 'rgb(61, 52, 45)',
+  lightbrown: 'rgba(61, 52, 45, 0.1)',
+  pink: 'rgb(251, 226, 208)',
+  tan: 'rgb(253, 248, 228)',
+  green: 'rgb(203, 223, 189)',
+  navy: 'rgb(59, 64, 89)',
+};
+
 export const Colors = {
   primary: {
-    text: 'rgb(56, 48, 41)',
-    background: 'rgb(250, 227, 209)',
-    backgroundAlt: 'rgb(252, 247, 227)',
-    splash: 'rgb(48, 43, 38)',
+    text: Palette.darkbrown,
+    background: Palette.pink, // pink
+    backgroundAlt: Palette.tan, // tan
+    backgroundGreen: Palette.green, // green
+    splash: 'rgb(48, 43, 38)', // not sure about this
   },
   personality: {
     unselected: {
@@ -18,15 +28,15 @@ export const Colors = {
     },
   },
   navigation: {
-    background: 'rgb(255, 252, 245)',
-    border: 'rgba(61, 51, 46, 0.1)',
+    background: Palette.tan,
+    border: Palette.lightbrown,
   },
   button: {
-    primary: 'rgb(59, 64, 89)',
+    primary: Palette.navy,
     primaryText: 'white',
   },
   card: {
-    background: 'rgb(250, 227, 209)',
+    background: Palette.pink,
     shadow: 'rgba(0, 0, 0, 0.1)',
   },
   black: '#000000',
