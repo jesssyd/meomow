@@ -1,5 +1,6 @@
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Colors } from '@/constants/Colors';
+import { FontSizes } from '@/constants/Fonts';
 
 interface PersonalityChipProps {
   label: string;
@@ -32,12 +33,12 @@ export function PersonalityChip({ label, selected, onPress }: PersonalityChipPro
 const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
     borderWidth: 1,
     marginRight: 8,
     marginBottom: 8,
-    minHeight: 44,
+    minHeight: 36,
     justifyContent: 'center',
   },
   unselectedChip: {
@@ -50,7 +51,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontFamily: 'Jua-Regular',
-    fontSize: 16,
+    ...FontSizes.body,
     textAlign: 'center',
   },
   unselectedText: {
