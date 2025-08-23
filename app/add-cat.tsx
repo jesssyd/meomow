@@ -324,7 +324,7 @@ export default function AddCatScreen() {
   );
 }
 
-const TILE = 100;
+const TILE_HEIGHT = 112;
 
 const styles = StyleSheet.create({
   // Layout
@@ -421,8 +421,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   tile: {
-    width: TILE,
-    height: TILE,
+    width: TILE_HEIGHT,
+    height: TILE_HEIGHT,
     borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: 'rgba(56,48,41,0.07)',
