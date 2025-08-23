@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     right: 6,
-    backgroundColor: 'rgba(255,59,48,0.9)',
+    backgroundColor: Colors.error.primary,
     width: 22,
     height: 22,
     borderRadius: 11,
