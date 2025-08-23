@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ImageBackground, Dimensions } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors, FontSizes } from '@/constants';
 import { Cat } from '@/types/cat';
@@ -7,16 +7,26 @@ import { CatStorage } from '@/utils/storage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Layout constants for 2-col grid
-const H_PADDING = 16;          // screen horizontal padding (matches header/listContent)
-const GUTTER = 16;             // space between columns
+// Grid layout
+const H_PADDING = 16;
+const GUTTER = 16;
 const CARD_WIDTH = (SCREEN_WIDTH - H_PADDING * 2 - GUTTER) / 2;
-const FRAME_ASPECT = 172 / 204; // width / height of frame image
+const FRAME_W = 172;
+const FRAME_H = 204;
+const CUTOUT_W = 135;
+const CUTOUT_H = 121;
+const CUTOUT_TOP = 20;
 
-// Inner layout of content inside the frame
-const FRAME_INSET_X = 12;      // left/right inset inside the frame for inner content
-const PHOTO_TOP = 12;          // top offset of photo inside frame
-const TEXT_GAP = 8;            // gap between photo -> date, date -> name
+// Scale all inner measurements to our card width
+const SCALE = CARD_WIDTH / FRAME_W;
+const CARD_HEIGHT = FRAME_H * SCALE;
+
+// Scaled cutout rect and text box
+const PHOTO_W = CUTOUT_W * SCALE;
+const PHOTO_H = CUTOUT_H * SCALE;
+const PHOTO_TOP = CUTOUT_TOP * SCALE;
+const TEXT_W = 160 * SCALE;
+const TEXT_H = 57 * SCALE;
 
 function formatDate(iso?: string) {
   if (!iso) return 'unknown date';
@@ -86,7 +96,7 @@ export default function CatalogScreen() {
       <FlatList
         style={styles.list}
         contentContainerStyle={styles.listContent}
-        columnWrapperStyle={{ justifyContent: 'space-between' }} // clean 2-col alignment
+        columnWrapperStyle={{ justifyContent: 'space-between' }}
         data={cats}
         keyExtractor={(c) => c.id}
         numColumns={2}
@@ -96,55 +106,37 @@ export default function CatalogScreen() {
               ? item.photoUris[item.photoUris.length - 1]
               : item.photoUri;
 
-          const innerPhotoSize = CARD_WIDTH - FRAME_INSET_X * 2; // square photo inside frame
-
           return (
             <TouchableOpacity
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onPress={() => router.push(`/cat/${item.id}`)}
               style={styles.cardTap}
             >
-              <ImageBackground
-                source={require('@/assets/images/framePink.png')}
-                style={styles.frame}
-                imageStyle={styles.frameImage}
-              >
-                {/* Photo area */}
+              <View style={styles.frameBox}>
+                {/* Photo sits BEHIND the frame, positioned to the cutout */}
                 {latestPhoto ? (
                   <Image
                     source={{ uri: latestPhoto }}
-                    style={[
-                      styles.photoInFrame,
-                      {
-                        width: innerPhotoSize,
-                        height: innerPhotoSize,
-                        marginTop: PHOTO_TOP,
-                      },
-                    ]}
+                    style={styles.photo}
+                    resizeMode="cover"
                   />
                 ) : (
-                  <View
-                    style={[
-                      styles.photoInFrame,
-                      {
-                        width: innerPhotoSize,
-                        height: innerPhotoSize,
-                        marginTop: PHOTO_TOP,
-                      },
-                    ]}
-                  />
+                  <View style={[styles.photo, { backgroundColor: 'rgba(56,48,41,0.1)' }]} />
                 )}
 
-                {/* Date */}
-                <Text style={[styles.date, { marginTop: TEXT_GAP }]}>
-                  {formatDate(item.lastUpdated || item.dateAdded)}
-                </Text>
+                {/* Frame overlay fills the card */}
+                <Image
+                  source={require('@/assets/images/framePink.png')}
+                  style={styles.frameOverlay}
+                  resizeMode="stretch"
+                />
 
-                {/* Name */}
-                <Text style={[styles.name, { marginTop: 4 }]}>
-                  {item.name || '???'}
-                </Text>
-              </ImageBackground>
+                {/* Bottom text box, centered */}
+                <View style={styles.textBox}>
+                  <Text style={styles.date}>{formatDate(item.lastUpdated || item.dateAdded)}</Text>
+                  <Text style={styles.name}>{item.name || '???'}</Text>
+                </View>
+              </View>
             </TouchableOpacity>
           );
         }}
@@ -211,42 +203,57 @@ const styles = StyleSheet.create({
     rowGap: 16,
   },
 
-  // Card tap target (no flex here; fixed width via frame)
+  // Two column card
   cardTap: {
     width: CARD_WIDTH,
   },
 
-  // Frame container uses fixed width and the frame's aspect ratio
-  frame: {
+  // Root of a single framed card
+  frameBox: {
     width: CARD_WIDTH,
-    aspectRatio: FRAME_ASPECT,
+    height: CARD_HEIGHT,
+  },
+
+  // Scaled photo positioned to the cutout window
+  photo: {
+    position: 'absolute',
+    width: PHOTO_W,
+    height: PHOTO_H,
+    top: PHOTO_TOP,
+    left: (CARD_WIDTH - PHOTO_W) / 2, // center horizontally in the window
+    borderRadius: 6,
+  },
+
+  // Frame image overlay across the whole card
+  frameOverlay: {
+    position: 'absolute',
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    left: 0,
+    top: 0,
+  },
+
+  // Bottom text box: 160×57 scaled, centered, pinned to bottom
+  textBox: {
+    position: 'absolute',
+    width: TEXT_W,
+    height: TEXT_H,
+    left: (CARD_WIDTH - TEXT_W) / 2,
+    bottom: 0,
     alignItems: 'center',
-  },
-  frameImage: {
-    resizeMode: 'stretch', // stretch so the PNG frame scales cleanly to our width
+    justifyContent: 'center',
   },
 
-  // Photo area that sits inside the frame borders
-  photoInFrame: {
-    backgroundColor: 'rgba(56,48,41,0.1)',
-    borderRadius: 8,
-  },
-
-  // Text inside the frame
   date: {
     fontFamily: 'Jua-Regular',
     ...FontSizes.caption,
     color: Colors.primary.text,
     opacity: 0.7,
-    alignSelf: 'flex-start',
-    marginLeft: FRAME_INSET_X,
     textTransform: 'lowercase',
   },
   name: {
     fontFamily: 'Jua-Regular',
     ...FontSizes.body,
     color: Colors.primary.text,
-    alignSelf: 'flex-start',
-    marginLeft: FRAME_INSET_X,
   },
 });
