@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   addTile: { borderWidth: 2, borderColor: 'rgba(56, 48, 41, 0.2)', borderStyle: 'dashed' },
   addTileText: { 
     fontFamily: 'Jua-Regular', 
-    fontSize: 12, 
+    ...FontSizes.caption,
     color: Colors.primary.text, 
     marginTop: 4 
   },
