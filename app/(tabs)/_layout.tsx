@@ -19,7 +19,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors.primary.text,
         tabBarInactiveTintColor: Colors.primary.text,
         tabBarLabelStyle: {
-          fontSize: 12,
+          ...FontSizes.caption,
           fontFamily: 'Jua-Regular',
           marginTop: 4,
         },
