@@ -1,8 +1,8 @@
 export const FontSizes = {
-  splash: 48,
-  heading: 22,
-  body: 16,
-  caption: 14,
+  splash: { fontSize: 48, lineHeight: 52 },
+  heading: { fontSize: 22, lineHeight: 28 },
+  body: { fontSize: 16, lineHeight: 20 },
+  caption: { fontSize: 12, lineHeight: 16 },
 };
 
 export const FontWeights = {
