@@ -110,7 +110,7 @@ export default function AddCatScreen() {
       const locationData = await LocationService.getCurrentLocation();
       setFormData(prev => ({ ...prev, location: locationData }));
     } catch {
-      setFormData(prev => ({ ...prev, location: { address: 'Unable to get location' } }));
+      setFormData(prev => ({ ...prev, location: { address: 'unable to get location' } }));
     } finally {
       setLocationLoading(false);
     }
@@ -122,10 +122,10 @@ export default function AddCatScreen() {
   };
 
   const handleDeletePhoto = (index: number) => {
-    Alert.alert('Delete photo', 'Are you sure you want to delete this photo?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert('delete photo', 'are you sure you want to delete this photo?', [
+      { text: 'cancel', style: 'cancel' },
       {
-        text: 'Delete',
+        text: 'delete',
         style: 'destructive',
         onPress: () => {
           setFormData(prev => {
@@ -151,7 +151,7 @@ export default function AddCatScreen() {
 
   const handleSave = async () => {
     if (!canSave) {
-      Alert.alert('Missing photo', 'Please add at least one photo of the cat.');
+      Alert.alert('missing photo', 'please add at least one photo of the cat.');
       return;
     }
 
@@ -170,8 +170,8 @@ export default function AddCatScreen() {
         photoUri: latest,
         photoUris: photos,
         location: formData.location,
-        breed: formData.breed.trim() || 'Unknown',
-        age: formData.age.trim() || 'Unknown',
+        breed: formData.breed.trim() || 'unknown',
+        age: formData.age.trim() || 'unknown',
         personality: formData.personality,
         notes: formData.notes.trim(),
         dateAdded: existing?.dateAdded ?? now,
@@ -186,12 +186,12 @@ export default function AddCatScreen() {
         await getCurrentLocation();
       }
 
-      Alert.alert('Success!', `${cat.name} has been ${isEditing ? 'updated' : 'added to'} your catalog!`, [
-        { text: 'OK', onPress: () => (isEditing ? router.back() : router.push('/(tabs)/')) },
+      Alert.alert('success!', `${cat.name} has been ${isEditing ? 'updated' : 'added to'} your catalog!`, [
+        { text: 'okie', onPress: () => (isEditing ? router.back() : router.push('/(tabs)/')) },
       ]);
     } catch (error) {
-      console.error('Error saving cat:', error);
-      Alert.alert('Error', 'Failed to save cat. Please try again.');
+      console.error('error saving cat:', error);
+      Alert.alert('error', 'failed to save cat. please try again.');
     } finally {
       setLoading(false);
     }
@@ -202,7 +202,7 @@ export default function AddCatScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary.text} />
-          <Text style={styles.loadingText}>Loading cat data...</Text>
+          <Text style={styles.loadingText}>loading cat data...</Text>
         </View>
       </SafeAreaView>
     );
@@ -222,7 +222,7 @@ export default function AddCatScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>photos/videos ({formData.photoUris.length}/3)</Text>
+          <Text style={styles.sectionLabel}>photos ({formData.photoUris.length}/3)</Text>
 
           {/* Photo grid */}
           <View style={styles.grid}>
