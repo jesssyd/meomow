@@ -56,6 +56,9 @@ export const Colors = {
     background: Palette.lightbrown,
     border: Palette.medbrown,
   },
+   error: {
+    primary: Palette.darkorange,
+  },
   black: '#000000',
   white: '#FFFFFF',
   
