@@ -50,9 +50,7 @@ export default function CatDetailScreen() {
         }
       } catch (error) {
         console.error('Error loading cat:', error);
-        if (alive) {
-          setLoading(false);
-        }
+        if (alive) setLoading(false);
       }
     })();
     return () => {
@@ -65,7 +63,6 @@ export default function CatDetailScreen() {
     router.push({ pathname: '/add-cat', params: { catId: cat.id } });
   };
 
-  // Collect all photos once
   const allPhotos = useMemo(() => {
     if (!cat) return [] as string[];
     if (cat.photoUris && Array.isArray(cat.photoUris) && cat.photoUris.length > 0) {
@@ -100,10 +97,8 @@ export default function CatDetailScreen() {
   }
 
   const catName = cat.name || 'Unknown Cat';
-
-  // Layout math for a compact grid that keeps details visible in the same scroll
   const GRID_COLUMNS = 3;
-  const H_PADDING = 20; // matches detailsContainer horizontal padding
+  const H_PADDING = 20;
   const GAP = 8;
   const thumbSize =
     (width - H_PADDING * 2 - GAP * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
@@ -124,7 +119,12 @@ export default function CatDetailScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Photo Grid - shows every image at once */}
+        {/* Last Updated */}
+        <Text style={styles.lastUpdated}>
+          last updated: {formatDate(cat.lastUpdated || cat.dateAdded)}
+        </Text>
+
+        {/* Photo Grid */}
         <View style={styles.galleryContainer}>
           <Text style={styles.galleryTitle}>photos</Text>
 
@@ -138,7 +138,9 @@ export default function CatDetailScreen() {
                   <Image
                     source={{ uri }}
                     style={styles.gridImage}
-                    onError={(e) => console.log('Image load error:', e.nativeEvent.error)}
+                    onError={(e) =>
+                      console.log('Image load error:', e.nativeEvent.error)
+                    }
                   />
                 </View>
               ))}
@@ -148,50 +150,34 @@ export default function CatDetailScreen() {
               <Text style={styles.placeholderText}>No Photos</Text>
             </View>
           )}
+        </View>
 
-          {/* lightweight info line keeps context visible */}
-          <Text style={styles.photoMeta}>
-            {allPhotos.length} photo{allPhotos.length === 1 ? '' : 's'}
+        {/* Location below photos */}
+        <View style={styles.locationContainer}>
+          <MapPin size={16} color={Colors.primary.text} />
+          <Text style={styles.locationText}>
+            {cat.location?.address && cat.location.address.trim()
+              ? cat.location.address
+              : 'Location not specified'}
           </Text>
         </View>
 
         {/* Details */}
         <View style={styles.detailsContainer}>
-          {/* Cat Name */}
-          <Text style={styles.catName}>{catName}</Text>
-          <Text style={styles.lastUpdated}>
-            last updated: {formatDate(cat.lastUpdated || cat.dateAdded)}
-          </Text>
-
-          {/* Location */}
-          <View style={styles.locationContainer}>
-            <MapPin size={16} color={Colors.primary.text} />
-            <Text style={styles.locationText}>
-              {cat.location?.address && cat.location.address.trim()
-                ? cat.location.address
-                : 'location not specified'}
-            </Text>
-          </View>
-
           {/* Facts */}
           <View style={styles.infoSection}>
             <Text style={styles.sectionTitle}>{catName} is...</Text>
             <View style={styles.infoGrid}>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>
-                  • a {cat.breed && cat.breed.trim() && cat.breed !== 'unknown'
-                    ? cat.breed.toLowerCase()
-                    : 'mystery'}{' '}
-                  cat
-                </Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={styles.infoLabel}>
-                  • {cat.age && cat.age.trim() && cat.age !== 'Unknown'
-                    ? cat.age.toLowerCase()
-                    : 'age unknown'}
-                </Text>
-              </View>
+              <Text style={styles.infoLabel}>
+                • a {cat.breed && cat.breed.trim() && cat.breed !== 'Unknown'
+                  ? cat.breed.toLowerCase()
+                  : 'mystery'} cat
+              </Text>
+              <Text style={styles.infoLabel}>
+                • {cat.age && cat.age.trim() && cat.age !== 'Unknown'
+                  ? cat.age.toLowerCase()
+                  : 'age unknown'}
+              </Text>
             </View>
           </View>
 
@@ -214,17 +200,10 @@ export default function CatDetailScreen() {
           {/* Notes */}
           <View style={styles.notesSection}>
             <Text style={styles.sectionTitle}>notes</Text>
-            <View style={styles.notesContainer}>
-              <Text style={styles.notesText}>
-                {cat.notes && cat.notes.trim() ? cat.notes : 'No notes added yet'}
-              </Text>
-            </View>
+            <Text style={styles.notesText}>
+              {cat.notes && cat.notes.trim() ? cat.notes : 'No notes added yet'}
+            </Text>
           </View>
-
-          {/* Edit button */}
-          <TouchableOpacity style={styles.editButton} onPress={handleEdit}>
-            <Text style={styles.editButtonText}>edit</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -232,7 +211,7 @@ export default function CatDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.primary.backgroundAlt },
+  container: { flex: 1, backgroundColor: Colors.backgroundGreen },
   center: { justifyContent: 'center', alignItems: 'center' },
 
   header: {
@@ -255,8 +234,8 @@ const styles = StyleSheet.create({
 
   // Gallery
   galleryContainer: {
-    backgroundColor: Colors.primary.background,
-    paddingTop: 16,
+    backgroundColor: Colors.backgroundGreen,
+    paddingTop: 8,
     paddingBottom: 16,
     paddingHorizontal: 20,
   },
@@ -267,10 +246,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textTransform: 'lowercase',
   },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
+  grid: { flexDirection: 'row', flexWrap: 'wrap' },
   gridItem: {
     borderRadius: 10,
     overflow: 'hidden',
@@ -289,37 +265,21 @@ const styles = StyleSheet.create({
     color: Colors.primary.text,
     opacity: 0.5,
   },
-  photoMeta: {
-    fontFamily: 'Jua-Regular',
-    ...FontSizes.caption,
-    color: Colors.primary.text,
-    opacity: 0.7,
-    marginTop: 8,
-  },
 
-  // Details
-  detailsContainer: { flex: 1, paddingHorizontal: 20, paddingTop: 20 },
-  catName: {
-    fontFamily: 'Jua-Regular',
-    ...FontSizes.heading,
-    color: Colors.primary.text,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
   lastUpdated: {
     fontFamily: 'Jua-Regular',
-    ...FontSizes.caption,
+    ...FontSizes.body,
     color: Colors.primary.text,
-    opacity: 0.6,
-    textAlign: 'center',
-    marginBottom: 20,
+    marginLeft: 20,
+    marginTop: 12,
   },
 
+  // Location
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
+    marginLeft: 20,
+    marginVertical: 12,
   },
   locationText: {
     fontFamily: 'Jua-Regular',
@@ -328,6 +288,8 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 
+  // Details
+  detailsContainer: { flex: 1, paddingHorizontal: 20, paddingTop: 10 },
   infoSection: { marginBottom: 20 },
   sectionTitle: {
     fontFamily: 'Jua-Regular',
@@ -337,29 +299,32 @@ const styles = StyleSheet.create({
     textTransform: 'lowercase',
   },
   infoGrid: { gap: 8 },
-  infoItem: { flexDirection: 'row', alignItems: 'center' },
-  infoLabel: { fontFamily: 'Jua-Regular', ...FontSizes.body, color: Colors.primary.text },
+  infoLabel: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.body,
+    color: Colors.primary.text,
+  },
 
   personalitySection: { marginBottom: 20 },
   personalityContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   personalityChip: {
-    backgroundColor: Colors.personality.selected.background,
-    borderColor: Colors.personality.selected.border,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderRadius: 999,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
+    minHeight: 36,
+    justifyContent: 'center',
+    backgroundColor: Colors.personality.unselected.background,
+    borderColor: Colors.personality.unselected.border,
   },
-  personalityText: { fontFamily: 'Jua-Regular', ...FontSizes.body, color: Colors.personality.selected.text },
+  personalityText: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.body,
+    color: Colors.personality.unselected.text,
+    textAlign: 'center',
+  },
 
   notesSection: { marginBottom: 20 },
-  notesContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 8,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(56, 48, 41, 0.1)',
-  },
   notesText: {
     fontFamily: 'Jua-Regular',
     ...FontSizes.body,
@@ -373,19 +338,6 @@ const styles = StyleSheet.create({
     color: Colors.primary.text,
     opacity: 0.6,
     fontStyle: 'italic',
-  },
-
-  editButton: {
-    backgroundColor: Colors.button.primary,
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  editButtonText: {
-    fontFamily: 'Jua-Regular',
-    ...FontSizes.heading,
-    color: Colors.button.primaryText,
   },
 
   backButton: {
