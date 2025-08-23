@@ -221,7 +221,6 @@ const styles = StyleSheet.create({
     height: PHOTO_H,
     top: PHOTO_TOP,
     left: (CARD_WIDTH - PHOTO_W) / 2, // center horizontally in the window
-    borderRadius: 6,
   },
 
   // Frame image overlay across the whole card
