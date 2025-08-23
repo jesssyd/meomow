@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.heading,
+    ...FontSizes.heading,
     color: Colors.primary.text,
     textAlign: 'center',
   },
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   galleryTitle: {
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.heading,
+    ...FontSizes.heading,
     color: Colors.primary.text,
     marginBottom: 12,
     textTransform: 'lowercase',
@@ -285,13 +285,13 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
+    ...FontSizes.body,
     color: Colors.primary.text,
     opacity: 0.5,
   },
   photoMeta: {
     fontFamily: 'Jua-Regular',
-    fontSize: 12,
+    ...FontSizes.caption,
     color: Colors.primary.text,
     opacity: 0.7,
     marginTop: 8,
@@ -301,14 +301,14 @@ const styles = StyleSheet.create({
   detailsContainer: { flex: 1, paddingHorizontal: 20, paddingTop: 20 },
   catName: {
     fontFamily: 'Jua-Regular',
-    fontSize: 32,
+    ...FontSizes.heading,
     color: Colors.primary.text,
     textAlign: 'center',
     marginBottom: 8,
   },
   lastUpdated: {
     fontFamily: 'Jua-Regular',
-    fontSize: 14,
+    ...FontSizes.caption,
     color: Colors.primary.text,
     opacity: 0.6,
     textAlign: 'center',
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
+    ...FontSizes.body,
     color: Colors.primary.text,
     marginLeft: 8,
   },
@@ -331,14 +331,14 @@ const styles = StyleSheet.create({
   infoSection: { marginBottom: 20 },
   sectionTitle: {
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.heading,
+    ...FontSizes.heading,
     color: Colors.primary.text,
     marginBottom: 12,
     textTransform: 'lowercase',
   },
   infoGrid: { gap: 8 },
   infoItem: { flexDirection: 'row', alignItems: 'center' },
-  infoLabel: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
+  infoLabel: { fontFamily: 'Jua-Regular', ...FontSizes.body, color: Colors.primary.text },
 
   personalitySection: { marginBottom: 20 },
   personalityContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 12,
   },
-  personalityText: { fontFamily: 'Jua-Regular', fontSize: 14, color: Colors.personality.selected.text },
+  personalityText: { fontFamily: 'Jua-Regular', ...FontSizes.body, color: Colors.personality.selected.text },
 
   notesSection: { marginBottom: 20 },
   notesContainer: {
@@ -362,14 +362,14 @@ const styles = StyleSheet.create({
   },
   notesText: {
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
+    ...FontSizes.body,
     color: Colors.primary.text,
     lineHeight: 22,
   },
 
   noDataText: {
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
+    ...FontSizes.body,
     color: Colors.primary.text,
     opacity: 0.6,
     fontStyle: 'italic',
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.heading,
+    ...FontSizes.heading,
     color: Colors.button.primaryText,
   },
 
@@ -397,10 +397,10 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
+    ...FontSizes.body,
     color: Colors.button.primaryText,
   },
 
-  loadingText: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, marginTop: 12 },
-  errorText: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
+  loadingText: { fontFamily: 'Jua-Regular', ...FontSizes.body, color: Colors.primary.text, marginTop: 12 },
+  errorText: { fontFamily: 'Jua-Regular', ...FontSizes.body, color: Colors.primary.text },
 });
