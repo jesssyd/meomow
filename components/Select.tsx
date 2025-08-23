@@ -1,7 +1,8 @@
 // components/Select.tsx
 import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
-import { Colors, FontSizes } from '@/constants';
+import { Colors } from '@/constants/Colors';
+import { FontSizes } from '@/constants/fonts';
 
 type Props = {
   value: string;
@@ -60,12 +61,12 @@ const styles = StyleSheet.create({
   },
   triggerText: {
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
+    ...FontSizes.body,
     color: Colors.primary.text,
   },
   chev: {
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
+    ...FontSizes.body,
     color: Colors.primary.text,
     opacity: 0.6,
     marginLeft: 8,
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontFamily: 'Jua-Regular',
-    fontSize: FontSizes.body,
+    ...FontSizes.body,
     color: Colors.primary.text,
   },
 });
