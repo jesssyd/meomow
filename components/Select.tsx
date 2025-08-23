@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { FontSizes } from '@/constants/fonts';
+import { FontSizes } from '@/constants/Fonts';
 
 type Props = {
   value: string;
