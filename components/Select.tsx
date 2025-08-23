@@ -96,6 +96,6 @@ const styles = StyleSheet.create({
   optionText: {
     fontFamily: 'Jua-Regular',
     ...FontSizes.body,
-    color: Colors.primary.text,
+    color: Colors.primary.textInactive,
   },
 });
