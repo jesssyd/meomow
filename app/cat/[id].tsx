@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Colors.primary.background,
+    backgroundColor: Colors.primary.backgroundGreen,
   },
   headerButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
   headerTitle: {
