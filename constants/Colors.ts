@@ -1,5 +1,6 @@
 const Palette = {
   darkbrown: 'rgb(61, 52, 45)',
+  darkbrowninactive: 'rgba(61, 52, 45, 0.75)',
   medbrown: 'rgba(61, 52, 45, 0.25)',
   lightbrown: 'rgba(61, 52, 45, 0.1)',
   pink: 'rgb(251, 226, 208)',
@@ -22,14 +23,14 @@ export const Colors = {
   },
   personality: {
     unselected: {
-      background: 'rgb(255, 252, 245)',
-      border: 'rgba(61, 51, 46, 0.25)',
-      text: 'rgba(56, 48, 41, 0.75)',
+      background: Palette.cream,
+      border: Palette.lightbrown,
+      text: Palette.darkbrowninactive,
     },
     selected: {
-      background: 'rgba(242, 156, 120, 0.5)',
-      border: 'rgba(242, 156, 120, 0.5)',
-      text: 'rgb(143, 54, 18)',
+      background: Palette.lightorange,
+      border: Palette.lightorange,
+      text: Palette.darkorange,
     },
   },
   navigation: {
