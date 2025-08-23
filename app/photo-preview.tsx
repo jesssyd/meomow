@@ -2,29 +2,24 @@ import { View, Image, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
-import { FontSizes } from '@/constants/fonts';
-
 export default function PhotoPreviewScreen() {
   const router = useRouter();
   const { photoUri } = useLocalSearchParams<{ photoUri: string }>();
-
   const handleRetake = () => {
     router.back();
   };
-
   const handleUsePhoto = () => {
     router.push({
       pathname: '/add-cat',
       params: { photoUri }
     });
   };
-
   return (
     <View style={styles.container}>
       {photoUri && (
         <Image source={{ uri: photoUri }} style={styles.image} />
       )}
-      
+
       <SafeAreaView style={styles.controls}>
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
@@ -34,7 +29,7 @@ export default function PhotoPreviewScreen() {
           >
             <Text style={styles.buttonText}>Retake</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity 
             style={[styles.button, styles.primaryButton]} 
             onPress={handleUsePhoto}
@@ -49,7 +44,6 @@ export default function PhotoPreviewScreen() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -85,10 +79,10 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: 'Jua-Regular',
-    ...FontSizes.body,
+    fontSize: 16,
     color: Colors.white,
   },
   primaryButtonText: {
     color: Colors.button.primaryText,
   },
-});
+}); 
