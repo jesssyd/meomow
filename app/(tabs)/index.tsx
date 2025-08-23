@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   loading: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
   empty: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
   list: { padding: 16, gap: 16 },
-  card: { flex: 1, margin: 8, backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: 12, overflow: 'hidden' },
+  card: { flex: 1, margin: 8, backgroundColor: Colors.card.background, borderRadius: 12, overflow: 'hidden' },
   photo: { width: '100%', aspectRatio: 1, backgroundColor: 'rgba(56,48,41,0.1)' },
   name: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text, paddingTop: 8, paddingHorizontal: 8, textAlign: 'center' },
   date: { fontFamily: 'Jua-Regular', fontSize: FontSizes.caption, color: Colors.primary.text, opacity: 0.7, paddingBottom: 8, textAlign: 'center' },
