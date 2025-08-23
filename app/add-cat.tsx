@@ -16,7 +16,7 @@ import { ArrowLeft, Camera, MapPin, RefreshCw, X as XIcon } from 'lucide-react-n
 import uuid from 'react-native-uuid';
 
 import { Colors } from '@/constants/Colors';
-import { FontSizes } from '@/constants/fonts';
+import { FontSizes } from '@/constants/Fonts';
 import { Cat } from '@/types/cat';
 import { CatStorage } from '@/utils/storage';
 import { LocationService } from '@/utils/location';
