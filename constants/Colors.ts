@@ -7,7 +7,8 @@ const Palette = {
   tan: 'rgb(253, 248, 228)',
   cream: 'rgb(255, 253, 245)',
   green: 'rgb(203, 223, 189)',
-  navy: 'rgb(59, 64, 89)',
+  navy: 'rgb(58, 64, 90)',
+  navyinactive: 'rgb(112, 118, 143)',
   darkorange: 'rgb(143, 54, 17)',
   lightorange: 'rgba(241, 156, 121, 0.5)',
 };
