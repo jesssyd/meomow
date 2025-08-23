@@ -68,7 +68,7 @@ export default function TabLayout() {
             <CircleUserRound 
               size={size} 
               color={color} 
-              strokeWidth={focused ? 2.5 : 2}
+              strokeWidth=2.5
             />
           ),
         }}
