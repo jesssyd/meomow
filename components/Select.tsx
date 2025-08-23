@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   triggerText: {
     fontFamily: 'Jua-Regular',
     ...FontSizes.body,
-    color: Colors.primary.textInactive,
+    color: Colors.primary.text,
   },
   chev: {
     fontFamily: 'Jua-Regular',
