@@ -230,7 +230,7 @@ export default function AddCatScreen() {
               <View key={`${uri}-${idx}`} style={styles.tile}>
                 <Image source={{ uri }} style={styles.tileImg} />
                 <TouchableOpacity style={styles.deleteBadge} onPress={() => handleDeletePhoto(idx)}>
-                  <XIcon size={16} color={Colors.error.primary} />
+                  <XIcon size={16} color={Colors.white} />
                 </TouchableOpacity>
               </View>
             ))}
