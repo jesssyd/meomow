@@ -1,6 +1,6 @@
 const Palette = {
   darkbrown: 'rgb(61, 52, 45)',
-  lightbrown: 'rgba(61, 52, 45, 0.25)',
+  lightbrown: 'rgba(61, 52, 45, 0.2)',
   pink: 'rgb(251, 226, 208)',
   tan: 'rgb(253, 248, 228)',
   cream: 'rgb(255, 253, 245)',
