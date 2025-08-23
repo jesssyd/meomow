@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Chrome as Home, Plus, User } from 'lucide-react-native';
+import {BookOpen as Home, CirclePlus, CircleUserRound } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 
 export default function TabLayout() {
@@ -46,7 +46,7 @@ export default function TabLayout() {
         options={{
           title: '',
           tabBarIcon: ({ size, color, focused }) => (
-            <Plus 
+            <CirclePlus
               size={size + 4} 
               color={color} 
               strokeWidth={focused ? 2.5 : 2}
@@ -65,7 +65,7 @@ export default function TabLayout() {
         options={{
           title: 'profile',
           tabBarIcon: ({ size, color, focused }) => (
-            <User 
+            <CircleUserRound 
               size={size} 
               color={color} 
               strokeWidth={focused ? 2.5 : 2}
