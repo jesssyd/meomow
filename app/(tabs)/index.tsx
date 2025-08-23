@@ -48,7 +48,8 @@ export default function CatalogScreen() {
   if (cats.length === 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.empty}>no cats yet. tap + to add one</Text>
+        <Text style={styles.emptyHeading}>meow! no cats here...</Text>
+        <Text style={styles.emptyBody}>tap + to add your first kitty</Text>
       </View>
     );
   }
@@ -87,7 +88,8 @@ export default function CatalogScreen() {
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.primary.backgroundAlt },
   loading: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
-  empty: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
+  emptyBody: { fontFamily: 'Jua-Regular', fontSize: FontSizes.body, color: Colors.primary.text },
+  emptyHeading: { fontFamily: 'Jua-Regular', fontSize: FontSizes.heading, color: Colors.primary.text },
   list: { padding: 16, gap: 16 },
   card: { flex: 1, margin: 8, backgroundColor: Colors.card.background, borderRadius: 12, overflow: 'hidden' },
   photo: { width: '100%', aspectRatio: 1, backgroundColor: 'rgba(56,48,41,0.1)' },
