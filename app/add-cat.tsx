@@ -33,7 +33,7 @@ const AGES = ['kitten (0-1 year)','young (1-3 years)','adult (3-7 years)','senio
 
 const initialForm = {
   name: '',
-  location: { address: 'Getting location...', coordinates: undefined as undefined | { latitude: number; longitude: number } },
+  location: { address: 'getting location...', coordinates: undefined as undefined | { latitude: number; longitude: number } },
   breed: '',
   age: '',
   personality: [] as string[],
