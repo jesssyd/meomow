@@ -50,7 +50,7 @@ export const Colors = {
   },
   input: {
     background: Palette.cream,
-    border: Palette.medbrown,
+    border: Palette.lightbrown,
   }, 
   inputAlt: {
     background: Palette.lightbrown,
