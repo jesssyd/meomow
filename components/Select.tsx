@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: 'rgba(56,48,41,0.1)',
+    borderColor: Colors.input.border,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
