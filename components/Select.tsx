@@ -49,7 +49,7 @@ export default function Select({ value, options, placeholder = 'choose', onChang
 const styles = StyleSheet.create({
   wrapper: { position: 'relative' },
   trigger: {
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: Colors.input.background,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
