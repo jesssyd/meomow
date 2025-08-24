@@ -81,7 +81,7 @@ export default function ProfileScreen() {
 
       setStats(profileStats);
     } catch (error) {
-      console.error('Error loading profile data:', error);
+      console.error('error loading profile data:', error);
     } finally {
       setLoading(false);
     }
