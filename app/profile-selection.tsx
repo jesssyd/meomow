@@ -39,7 +39,7 @@ export default function ProfileSelectionScreen() {
       const allProfiles = await ProfileStorage.getAllProfiles();
       setProfiles(allProfiles);
     } catch (error) {
-      console.error('Error loading profiles:', error);
+      console.error('error loading profiles:', error);
     } finally {
       setLoading(false);
     }
