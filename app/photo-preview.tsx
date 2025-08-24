@@ -2,24 +2,33 @@ import { View, Image, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
+import { FontSizes } from '@/constants/Fonts';
+import { PhotoInbox } from '@/utils/photoInbox';
+
 export default function PhotoPreviewScreen() {
   const router = useRouter();
   const { photoUri } = useLocalSearchParams<{ photoUri: string }>();
+
   const handleRetake = () => {
     router.back();
   };
+
   const handleUsePhoto = () => {
-    router.push({
-      pathname: '/add-cat',
-      params: { photoUri }
-    });
+    if (photoUri) {
+      // Put the photo into the inbox so AddCatScreen can pick it up
+      PhotoInbox.push(photoUri);
+      
+      // Navigate back to AddCatScreen (go back twice: preview -> camera -> add-cat)
+      router.back();
+      router.back();
+    }
   };
+
   return (
     <View style={styles.container}>
       {photoUri && (
         <Image source={{ uri: photoUri }} style={styles.image} />
       )}
-
       <SafeAreaView style={styles.controls}>
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
@@ -27,16 +36,15 @@ export default function PhotoPreviewScreen() {
             onPress={handleRetake}
             activeOpacity={0.8}
           >
-            <Text style={styles.buttonText}>Retake</Text>
+            <Text style={styles.buttonText}>retake</Text>
           </TouchableOpacity>
-
           <TouchableOpacity 
             style={[styles.button, styles.primaryButton]} 
             onPress={handleUsePhoto}
             activeOpacity={0.8}
           >
             <Text style={[styles.buttonText, styles.primaryButtonText]}>
-              Use Photo
+              use photo
             </Text>
           </TouchableOpacity>
         </View>
@@ -44,6 +52,7 @@ export default function PhotoPreviewScreen() {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -79,10 +88,11 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: 'Jua-Regular',
-    fontSize: 16,
+    fontSize: FontSizes.body.fontSize,
+    lineHeight: FontSizes.body.lineHeight,
     color: Colors.white,
   },
   primaryButtonText: {
     color: Colors.button.primaryText,
   },
-}); 
+});
