@@ -133,7 +133,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.patternContainer} pointerEvents="none">
-        <Image source={require('@/assets/images/background.png')} style={styles.bgPattern} resizeMode="cover" />
+
       </View>
 
       <View style={styles.contentLayer}>
