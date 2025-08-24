@@ -5,7 +5,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts, Jua_400Regular } from '@expo-google-fonts/jua';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import LoadingScreen from '@/components/LoadingScreen';
+import LoadingScreen from '@/components/LoadingScreen'
+import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 
 // Keep the OS/native splash visible until we say otherwise.
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -14,6 +15,7 @@ const MIN_LOADER_MS = 2000;    // minimum time the animated loader shows
 const MAX_FAILSAFE_MS = 4000; // hard cap to avoid getting stuck
 
 export default function RootLayout() {
+  useFrameworkReady();
   // Gate on fonts to avoid any flash of wrong font
   const [fontsLoaded, fontError] = useFonts({ 'Jua-Regular': Jua_400Regular });
   const fontReady = fontsLoaded || !!fontError;
