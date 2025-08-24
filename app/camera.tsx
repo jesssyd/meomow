@@ -73,7 +73,7 @@ export default function CameraScreen() {
         });
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to take photo. Please try again.');
+      Alert.alert('error', 'failed to take photo. please try again.');
     }
   };
 
@@ -82,7 +82,7 @@ export default function CameraScreen() {
   if (!permission) {
     return (
       <View style={styles.container}>
-        <Text style={styles.message}>Loading camera...</Text>
+        <Text style={styles.message}>loading camera...</Text>
       </View>
     );
   }
@@ -91,15 +91,15 @@ export default function CameraScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.permissionContainer}>
-          <Text style={styles.permissionTitle}>Camera Access Needed</Text>
+          <Text style={styles.permissionTitle}>camera access needed</Text>
           <Text style={styles.permissionText}>
             meomow needs camera access to take photos of cats for your catalog.
           </Text>
           <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
-            <Text style={styles.permissionButtonText}>Grant Camera Access</Text>
+            <Text style={styles.permissionButtonText}>grant camera access</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+            <Text style={styles.cancelButtonText}>cancel</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
