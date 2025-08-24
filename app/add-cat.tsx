@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: Colors.primary.background,
+    backgroundColor: '',
   },
   saveButton: {
     backgroundColor: Colors.button.primary,
