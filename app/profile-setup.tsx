@@ -64,7 +64,7 @@ export default function ProfileSetupScreen() {
                 style={styles.input}
                 value={username}
                 onChangeText={setUsername}
-                placeholder="catfinder123"
+                placeholder="meomow"
                 placeholderTextColor={Colors.primary.textInactive}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -77,7 +77,7 @@ export default function ProfileSetupScreen() {
                 style={styles.input}
                 value={displayName}
                 onChangeText={setDisplayName}
-                placeholder="cat enthusiast"
+                placeholder="expert cat finder"
                 placeholderTextColor={Colors.primary.textInactive}
               />
             </View>
