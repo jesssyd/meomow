@@ -110,11 +110,12 @@ export default function CatDetailScreen() {
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Pattern above background color, below all content */}
+      {/* Background image fills entire screen, centered, above color and below content */}
       <View style={styles.patternContainer} pointerEvents="none">
         <Image
-          source={require('@/assets/images/pawprint.png')}
+          source={require('@/assets/images/background.png')}
           style={styles.bgPattern}
+          resizeMode="cover"
         />
       </View>
 
@@ -231,19 +232,15 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.primary.backgroundGreen },
   center: { justifyContent: 'center', alignItems: 'center' },
 
-  // Pattern layer (on top of color, under content)
+  // Background image layer
   patternContainer: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 0,
+    overflow: 'hidden',
   },
   bgPattern: {
-    position: 'absolute',
-    right: 0,
-    top: '14%',      // Figma Y 14%
-    width: '47%',    // Figma scale 47%
-    aspectRatio: 1,  // square art
-    opacity: 0.05,   // overall pattern opacity 5%
-    resizeMode: 'contain',
+    ...StyleSheet.absoluteFillObject, // fill whole screen
+    opacity: 0.05,                    // keep it subtle on top of color
   },
 
   // Foreground content layer
@@ -261,7 +258,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     fontFamily: 'Jua-Regular',
-    ...FontSizes.heading, // 22
+    ...FontSizes.heading,
     color: Colors.primary.text,
     textAlign: 'center',
   },
@@ -271,7 +268,7 @@ const styles = StyleSheet.create({
   // Last updated
   lastUpdated: {
     fontFamily: 'Jua-Regular',
-    ...FontSizes.body, // 16
+    ...FontSizes.body,
     color: Colors.primary.text,
     marginLeft: 20,
     marginTop: 12,
