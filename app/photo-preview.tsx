@@ -56,7 +56,6 @@ export default function PhotoPreviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.black,
   },
   image: {
     flex: 1,
