@@ -116,7 +116,6 @@ export default function ProfileScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.patternContainer} pointerEvents="none">
-          <Image source={require('@/assets/images/background.png')} style={styles.bgPattern} resizeMode="cover" />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary.text} />
@@ -224,7 +223,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.primary.backgroundAlt,
+    backgroundColor: 'Colors.primary.backgroundAlt',
   },
   patternContainer: {
     ...StyleSheet.absoluteFillObject,
