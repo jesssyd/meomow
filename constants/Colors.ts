@@ -6,6 +6,7 @@ const Palette = {
   pink: 'rgb(251, 226, 208)',
   tan: 'rgb(253, 248, 228)',
   cream: 'rgb(255, 253, 245)',
+  creamAlt: 'rgba(255, 253, 245, 0.5)',
   green: 'rgb(203, 223, 189)',
   navy: 'rgb(58, 64, 90)',
   navygrey: 'rgb(112, 118, 143)',
@@ -43,6 +44,8 @@ export const Colors = {
     primary: Palette.navy,
     disabled: Palette.navygrey,
     primaryText: 'white',
+    secondary: Palette.creamAlt,
+    secondaryText: Palette.darkbrown,
   },
   card: {
     background: Palette.pink,
