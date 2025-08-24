@@ -1,3 +1,5 @@
+// index.tsx
+
 import { useCallback, useState, useEffect } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
