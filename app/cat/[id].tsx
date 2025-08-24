@@ -79,7 +79,7 @@ export default function CatDetailScreen() {
       <SafeAreaView style={[styles.container, styles.center]}>
         <Stack.Screen options={{ headerShown: false }} />
         <ActivityIndicator size="large" color={Colors.primary.text} />
-        <Text style={styles.loadingText}>Loading kitty...</Text>
+        <Text style={styles.loadingText}>loading kitty...</Text>
       </SafeAreaView>
     );
   }
@@ -88,15 +88,15 @@ export default function CatDetailScreen() {
     return (
       <SafeAreaView style={[styles.container, styles.center]}>
         <Stack.Screen options={{ headerShown: false }} />
-        <Text style={styles.errorText}>Cat not found</Text>
+        <Text style={styles.errorText}>cat not found</Text>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
+          <Text style={styles.backButtonText}>go back</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
   }
 
-  const catName = cat.name || 'Unknown Cat';
+  const catName = cat.name || 'unknown cat';
 
   const GRID_COLUMNS = 3;
   const H_PADDING = 20;
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Colors.primary.backgroundGreen,
+    backgroundColor: '',
   },
   headerButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
   headerTitle: {
