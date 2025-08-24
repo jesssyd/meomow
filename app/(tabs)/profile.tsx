@@ -1,3 +1,4 @@
+// app/profile.tsx
 import { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -61,7 +62,6 @@ export default function ProfileScreen() {
 
       setProfile(currentProfile);
 
-      // Calculate stats
       const cats = await CatStorage.getAllCats(currentProfile.id);
       const topTraits = getTopPersonalityTraits(cats);
       
@@ -75,7 +75,7 @@ export default function ProfileScreen() {
           ? cats.sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime())[0]?.dateAdded
           : undefined,
         favoritePersonalityTraits: topTraits,
-        discoveryStreak: cats.length, // simplified for now
+        discoveryStreak: cats.length,
         averageCatsPerMonth: Math.round((cats.length / monthsDiff) * 10) / 10,
       };
 
@@ -87,7 +87,11 @@ export default function ProfileScreen() {
     }
   }, [router]);
 
-  useFocusEffect(loadProfileData);
+  useFocusEffect(
+  useCallback(() => {
+    loadProfileData();
+  }, [loadProfileData])
+);
 
   const handleSwitchProfile = () => {
     Alert.alert(
@@ -115,7 +119,10 @@ export default function ProfileScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.patternContainer} pointerEvents="none">
+        <View style={styles.patternContainer} pointerEvents="none" />
+        <View style={styles.headerAligned}>
+          <Text style={styles.headerTitle}>profile</Text>
+          <View style={styles.headerButton} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary.text} />
@@ -129,25 +136,34 @@ export default function ProfileScreen() {
     return null;
   }
 
+  // optional new field for image-based avatar
+  const profileImageUri = (profile as any).profileImageUri as string | undefined;
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.patternContainer} pointerEvents="none">
+      <View style={styles.patternContainer} pointerEvents="none" />
 
+      {/* header aligned to index.tsx height and padding */}
+      <View style={styles.headerAligned}>
+        <Text style={styles.headerTitle}>profile</Text>
+        <TouchableOpacity style={styles.headerButton} onPress={handleEditProfile}>
+          <Edit3 size={20} color={Colors.primary.text} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.contentLayer}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>profile</Text>
-          <TouchableOpacity style={styles.headerButton} onPress={handleEditProfile}>
-            <Edit3 size={20} color={Colors.primary.text} />
-          </TouchableOpacity>
-        </View>
-
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Profile Card */}
           <View style={styles.profileCard}>
-            <View style={[styles.profileAvatar, { backgroundColor: profile.profileColor }]}>
-              <Text style={styles.profileEmoji}>{profile.profileEmoji}</Text>
+            <View style={styles.profileAvatar}>
+              {profileImageUri ? (
+                <Image source={{ uri: profileImageUri }} style={styles.profileAvatarImg} />
+              ) : (
+                <>
+                  <View style={[styles.profileAvatarFallback]} />
+                  <Text style={styles.profileAvatarFallbackText}>no photo</Text>
+                </>
+              )}
             </View>
             <Text style={styles.displayName}>{profile.displayName}</Text>
             <Text style={styles.username}>@{profile.username}</Text>
@@ -220,11 +236,12 @@ export default function ProfileScreen() {
   );
 }
 
+const AVATAR_SIZE = 88;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.primary.backgroundAlt,
-    
   },
   patternContainer: {
     ...StyleSheet.absoluteFillObject,
@@ -239,13 +256,16 @@ const styles = StyleSheet.create({
     flex: 1,
     zIndex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+
+  // header aligned with index.tsx: same paddings and background
+  headerAligned: {
     paddingHorizontal: 16,
     paddingTop: 60,
     paddingBottom: 16,
+    backgroundColor: Colors.primary.backgroundAlt,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   headerTitle: {
     fontFamily: 'Jua-Regular',
@@ -258,14 +278,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   content: {
     flex: 1,
     paddingHorizontal: 20,
   },
   loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 24,
   },
   loadingText: {
     fontFamily: 'Jua-Regular',
@@ -279,22 +300,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.input.background,
     borderRadius: 16,
-    paddingVertical: 32,
+    paddingVertical: 28,
     paddingHorizontal: 24,
     marginBottom: 24,
     borderWidth: 1,
     borderColor: Colors.input.border,
   },
   profileAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    overflow: 'hidden',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'center',
+    marginBottom: 14,
+    backgroundColor: Colors.inputAlt.background,
+    borderWidth: 1,
+    borderColor: Colors.input.border,
   },
-  profileEmoji: {
-    fontSize: 36,
+  profileAvatarImg: {
+    width: '100%',
+    height: '100%',
+  },
+  profileAvatarFallback: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  profileAvatarFallbackText: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.caption,
+    color: Colors.primary.textInactive,
   },
   displayName: {
     fontFamily: 'Jua-Regular',
