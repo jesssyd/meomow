@@ -72,6 +72,10 @@ export default function RootLayout() {
         <Stack.Screen name="add-cat" />
         <Stack.Screen name="camera" />
         <Stack.Screen name="cat/[id]" />
+        <Stack.Screen name="profile-setup" />
+        <Stack.Screen name="profile-selection" />
+        <Stack.Screen name="edit-profile" />
+        <Stack.Screen name="photo-preview" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

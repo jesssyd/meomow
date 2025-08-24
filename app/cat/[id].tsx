@@ -18,6 +18,7 @@ import { Colors } from '@/constants/Colors';
 import { FontSizes } from '@/constants/Fonts';
 import { Cat } from '@/types/cat';
 import { CatStorage } from '@/utils/storage';
+import { ProfileStorage } from '@/utils/profileStorage';
 
 const { width } = Dimensions.get('window');
 
@@ -43,7 +44,13 @@ export default function CatDetailScreen() {
       if (!id) return;
       setLoading(true);
       try {
-        const data = await CatStorage.getCatById(id);
+        const profile = await ProfileStorage.getCurrentProfile();
+        if (!profile) {
+          router.replace('/profile-setup');
+          return;
+        }
+        
+        const data = await CatStorage.getCatById(profile.id, id);
         if (alive) {
           setCat(data);
           setLoading(false);

@@ -1,8 +1,5 @@
-// utils/storage.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Cat } from '@/types/cat';
-
-const CATS_KEY = 'meomow_cats';
 
 /**
  * Ensure a Cat object always has:
@@ -28,9 +25,14 @@ function normalizeCat(input: Cat): Cat {
   } as Cat;
 }
 
-async function readAll(): Promise<Cat[]> {
+function getCatsKey(profileId: string): string {
+  return `meomow_cats_${profileId}`;
+}
+
+async function readAllForProfile(profileId: string): Promise<Cat[]> {
   try {
-    const raw = await AsyncStorage.getItem(CATS_KEY);
+    const key = getCatsKey(profileId);
+    const raw = await AsyncStorage.getItem(key);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -42,11 +44,12 @@ async function readAll(): Promise<Cat[]> {
   }
 }
 
-async function writeAll(cats: Cat[]): Promise<void> {
+async function writeAllForProfile(profileId: string, cats: Cat[]): Promise<void> {
   try {
     // normalize on write too, so saved shape is consistent
     const normalized = cats.map(normalizeCat);
-    await AsyncStorage.setItem(CATS_KEY, JSON.stringify(normalized));
+    const key = getCatsKey(profileId);
+    await AsyncStorage.setItem(key, JSON.stringify(normalized));
   } catch (err) {
     console.error('Error saving cats to storage:', err);
     throw err;
@@ -54,18 +57,18 @@ async function writeAll(cats: Cat[]): Promise<void> {
 }
 
 export const CatStorage = {
-  async getAllCats(): Promise<Cat[]> {
-    return readAll();
+  async getAllCats(profileId: string): Promise<Cat[]> {
+    return readAllForProfile(profileId);
   },
 
-  async getCatById(id: string): Promise<Cat | null> {
-    const cats = await readAll();
+  async getCatById(profileId: string, id: string): Promise<Cat | null> {
+    const cats = await readAllForProfile(profileId);
     const found = cats.find((c) => c.id === id);
     return found ? normalizeCat(found) : null;
   },
 
-  async saveCat(cat: Cat): Promise<Cat> {
-    const cats = await readAll();
+  async saveCat(profileId: string, cat: Cat): Promise<Cat> {
+    const cats = await readAllForProfile(profileId);
     const normalized = normalizeCat(cat);
 
     const idx = cats.findIndex((c) => c.id === normalized.id);
@@ -75,14 +78,14 @@ export const CatStorage = {
       cats.push(normalized);
     }
 
-    await writeAll(cats);
+    await writeAllForProfile(profileId, cats);
     return normalized;
   },
 
-  async deleteCat(id: string): Promise<boolean> {
-    const cats = await readAll();
+  async deleteCat(profileId: string, id: string): Promise<boolean> {
+    const cats = await readAllForProfile(profileId);
     const next = cats.filter((c) => c.id !== id);
-    await writeAll(next);
+    await writeAllForProfile(profileId, next);
     return next.length !== cats.length;
   },
 };

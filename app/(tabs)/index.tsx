@@ -2,10 +2,12 @@
 
 import { useCallback, useState, useEffect } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useNavigation } from 'expo-router';
 import { Colors, FontSizes } from '@/constants';
 import { Cat } from '@/types/cat';
 import { CatStorage } from '@/utils/storage';
+import { ProfileStorage } from '@/utils/profileStorage';
+import { Profile } from '@/types/profile';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -39,20 +41,38 @@ function formatDate(iso?: string) {
 
 export default function CatalogScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const [cats, setCats] = useState<Cat[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const all = await CatStorage.getAllCats();
-    all.sort((a, b) => {
-      const ad = new Date(a.lastUpdated || a.dateAdded || 0).getTime();
-      const bd = new Date(b.lastUpdated || b.dateAdded || 0).getTime();
-      return bd - ad;
-    });
-    setCats(all);
+    
+    try {
+      const currentProfile = await ProfileStorage.getCurrentProfile();
+      
+      if (!currentProfile) {
+        // No profile selected, redirect to profile setup
+        router.replace('/profile-setup');
+        return;
+      }
+
+      setProfile(currentProfile);
+      
+      const all = await CatStorage.getAllCats(currentProfile.id);
+      all.sort((a, b) => {
+        const ad = new Date(a.lastUpdated || a.dateAdded || 0).getTime();
+        const bd = new Date(b.lastUpdated || b.dateAdded || 0).getTime();
+        return bd - ad;
+      });
+      setCats(all);
+    } catch (error) {
+      console.error('Error loading catalog:', error);
+    }
+    
     setLoading(false);
-  }, []);
+  }, [router]);
 
   useEffect(() => { load(); }, [load]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -60,10 +80,13 @@ export default function CatalogScreen() {
   if (loading) {
     return (
       <View style={styles.container}>
+        <View style={styles.patternContainer} pointerEvents="none">
+          <Image source={require('@/assets/images/background.png')} style={styles.bgPattern} resizeMode="cover" />
+        </View>
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <View>
-              <Text style={styles.title}>catalog</Text>
+              <Text style={styles.title}>cat catalog</Text>
               <Text style={styles.subtitle}>...</Text>
             </View>
             <Image 
@@ -83,11 +106,16 @@ export default function CatalogScreen() {
   if (cats.length === 0) {
     return (
       <View style={styles.container}>
+        <View style={styles.patternContainer} pointerEvents="none">
+          <Image source={require('@/assets/images/background.png')} style={styles.bgPattern} resizeMode="cover" />
+        </View>
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <View>
-              <Text style={styles.title}>catalog</Text>
-              <Text style={styles.subtitle}>0 kitties found</Text>
+              <Text style={styles.title}>cat catalog</Text>
+              <Text style={styles.subtitle}>
+                {profile?.displayName ? `${profile.displayName}'s collection` : '0 kitties found'}
+              </Text>
             </View>
             <Image 
               source={require('@/assets/images/meomow-logo.png')} 
@@ -106,12 +134,18 @@ export default function CatalogScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.patternContainer} pointerEvents="none">
+        <Image source={require('@/assets/images/background.png')} style={styles.bgPattern} resizeMode="cover" />
+      </View>
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.title}>catalog</Text>
+            <Text style={styles.title}>cat catalog</Text>
             <Text style={styles.subtitle}>
-              {cats.length} {cats.length === 1 ? 'kitty' : 'kitties'} found
+              {profile?.displayName 
+                ? `${profile.displayName} found ${cats.length} ${cats.length === 1 ? 'kitty' : 'kitties'}`
+                : `${cats.length} ${cats.length === 1 ? 'kitty' : 'kitties'} found`
+              }
             </Text>
           </View>
           <Image 
@@ -178,6 +212,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.primary.backgroundAlt,
+  },
+  patternContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+    overflow: 'hidden',
+  },
+  bgPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.05,
   },
   header: {
     paddingHorizontal: H_PADDING,

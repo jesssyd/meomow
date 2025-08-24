@@ -23,6 +23,7 @@ import { LocationService } from '@/utils/location';
 import { PersonalityChip } from '@/components/PersonalityChip';
 import Select from '@/components/Select';
 import { PhotoInbox } from '@/utils/photoInbox';
+import { ProfileStorage } from '@/utils/profileStorage';
 
 const PERSONALITY_OPTIONS = [
   'shy','silly','sweet','moody','vocal','friendly','playful','sleepy','energetic', 'mean', 'scared', 'curious', 'affectionate', 'boring', 'grumpy'
@@ -48,6 +49,7 @@ export default function AddCatScreen() {
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [formData, setFormData] = useState({ ...initialForm });
+  const [currentProfileId, setCurrentProfileId] = useState<string | null>(null);
 
   const isEditing = !!catId;
 
@@ -65,11 +67,24 @@ export default function AddCatScreen() {
   );
 
   useEffect(() => {
+    // Load current profile first
+    (async () => {
+      const profile = await ProfileStorage.getCurrentProfile();
+      if (!profile) {
+        router.replace('/profile-setup');
+        return;
+      }
+      setCurrentProfileId(profile.id);
+    })();
+
     if (isEditing && catId) {
       (async () => {
         setLoading(true);
         try {
-          const cat = await CatStorage.getCatById(catId);
+          const profile = await ProfileStorage.getCurrentProfile();
+          if (!profile) return;
+          
+          const cat = await CatStorage.getCatById(profile.id, catId);
           if (cat) {
             const photoUris = cat.photoUris && cat.photoUris.length > 0
               ? cat.photoUris
@@ -140,6 +155,11 @@ export default function AddCatScreen() {
   const canSave = formData.photoUris.length > 0 && !loading;
 
   const handleSave = async () => {
+    if (!currentProfileId) {
+      Alert.alert('error', 'no profile selected');
+      return;
+    }
+
     if (!canSave) {
       Alert.alert('missing photo', 'please add at least one photo of the cat.');
       return;
@@ -148,7 +168,7 @@ export default function AddCatScreen() {
     setLoading(true);
     try {
       const now = new Date().toISOString();
-      const existing = isEditing && catId ? await CatStorage.getCatById(catId) : null;
+      const existing = isEditing && catId ? await CatStorage.getCatById(currentProfileId, catId) : null;
 
       const photos = formData.photoUris.slice(0, 3);
       const latest = photos[photos.length - 1];
@@ -167,7 +187,12 @@ export default function AddCatScreen() {
         lastUpdated: now,
       };
 
-      await CatStorage.saveCat(cat);
+      await CatStorage.saveCat(currentProfileId, cat);
+      
+      // Update profile cat count if adding new cat
+      if (!isEditing) {
+        await ProfileStorage.incrementCatCount(currentProfileId);
+      }
 
       if (!isEditing) {
         setFormData({ ...initialForm });
