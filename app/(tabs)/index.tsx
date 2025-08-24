@@ -59,8 +59,17 @@ export default function CatalogScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>catalog</Text>
-          <Text style={styles.subtitle}>...</Text>
+          <View style={styles.headerContent}>
+            <View>
+              <Text style={styles.title}>catalog</Text>
+              <Text style={styles.subtitle}>...</Text>
+            </View>
+            <Image 
+              source={require('@/assets/images/meomow-logo.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
         </View>
         <View style={styles.center}>
           <Text style={styles.loading}>loading kitties...</Text>
@@ -73,8 +82,17 @@ export default function CatalogScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>catalog</Text>
-          <Text style={styles.subtitle}>0 kitties found</Text>
+          <View style={styles.headerContent}>
+            <View>
+              <Text style={styles.title}>catalog</Text>
+              <Text style={styles.subtitle}>0 kitties found</Text>
+            </View>
+            <Image 
+              source={require('@/assets/images/meomow-logo.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
         </View>
         <View style={styles.center}>
           <Text style={styles.emptyHeading}>meow! no cats here...</Text>
@@ -87,10 +105,19 @@ export default function CatalogScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>catalog</Text>
-        <Text style={styles.subtitle}>
-          {cats.length} {cats.length === 1 ? 'kitty' : 'kitties'} found
-        </Text>
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.title}>catalog</Text>
+            <Text style={styles.subtitle}>
+              {cats.length} {cats.length === 1 ? 'kitty' : 'kitties'} found
+            </Text>
+          </View>
+          <Image 
+            source={require('@/assets/images/meomow-logo.png')} 
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
       </View>
 
       <FlatList
@@ -155,6 +182,15 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 16,
     backgroundColor: Colors.primary.backgroundAlt,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  logo: {
+    height: 50,
+    width: 50,
   },
   title: {
     fontFamily: 'Jua-Regular',
