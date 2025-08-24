@@ -1,4 +1,4 @@
-// app/camera.tsx (or wherever your camera screen lives)
+// app/camera.tsx (style-only updates per request)
 import { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -106,7 +106,12 @@ export default function CameraScreen() {
     );
   }
 
-  const flashIcon = flash === 'off' ? <ZapOff size={22} color="white" /> : <Zap size={22} color="white" />;
+  const flashIcon = flash === 'off'
+    ? <ZapOff size={22} color={Colors.button.secondaryText} />
+    : <Zap size={22} color={Colors.button.secondaryText} />;
+
+  const canZoomOut = zoom > 0;
+  const canZoomIn  = zoom < 1;
 
   return (
     <View style={styles.container}>
@@ -125,7 +130,7 @@ export default function CameraScreen() {
         {/* Top bar: close + flash + flip */}
         <View style={styles.topControls}>
           <TouchableOpacity style={styles.circleBtn} onPress={handleCancel}>
-            <X size={24} color="white" />
+            <X size={24} color={Colors.button.secondaryText} />
           </TouchableOpacity>
 
           <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -133,41 +138,38 @@ export default function CameraScreen() {
               {flashIcon}
             </TouchableOpacity>
             <TouchableOpacity style={styles.circleBtn} onPress={toggleCameraFacing}>
-              <SwitchCamera size={24} color="white" />
+              <SwitchCamera size={24} color={Colors.button.secondaryText} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Bottom bar: zoom controls and shutter */}
+        {/* Bottom column: zoom above shutter, both centered */}
         <View style={styles.bottomControls}>
-          <View style={styles.bottomRow}>
-            {/* Zoom cluster */}
-            <View style={styles.zoomCluster}>
-              <TouchableOpacity 
-                style={[styles.smallBtn, zoom <= 0 && styles.disabledBtn]} 
-                onPress={zoomOut}
-                disabled={zoom <= 0}
-              >
-                <Minus size={20} color={zoom <= 0 ? "rgba(255,255,255,0.4)" : "white"} />
-              </TouchableOpacity>
-              <Text style={styles.zoomLabel}>{`${(1 + zoom * 9).toFixed(1)}x`}</Text>
-              <TouchableOpacity 
-                style={[styles.smallBtn, zoom >= 1 && styles.disabledBtn]} 
-                onPress={zoomIn}
-                disabled={zoom >= 1}
-              >
-                <Plus size={20} color={zoom >= 1 ? "rgba(255,255,255,0.4)" : "white"} />
-              </TouchableOpacity>
-            </View>
-
-            {/* Shutter */}
-            <TouchableOpacity style={styles.shutterButton} onPress={takePicture} activeOpacity={0.85}>
-              <View style={styles.shutterButtonInner} />
+          {/* Zoom cluster centered above shutter */}
+          <View style={styles.zoomCluster}>
+            <TouchableOpacity 
+              style={[styles.smallBtn, !canZoomOut && styles.disabledBtn]} 
+              onPress={zoomOut}
+              disabled={!canZoomOut}
+            >
+              <Minus size={20} color={Colors.button.secondaryText} />
             </TouchableOpacity>
 
-            {/* Empty space for balance */}
-            <View style={styles.rightSpacer} />
+            <Text style={styles.zoomLabel}>{`${(1 + zoom * 9).toFixed(1)}x`}</Text>
+
+            <TouchableOpacity 
+              style={[styles.smallBtn, !canZoomIn && styles.disabledBtn]} 
+              onPress={zoomIn}
+              disabled={!canZoomIn}
+            >
+              <Plus size={20} color={Colors.button.secondaryText} />
+            </TouchableOpacity>
           </View>
+
+          {/* Shutter */}
+          <TouchableOpacity style={styles.shutterButton} onPress={takePicture} activeOpacity={0.85}>
+            <View style={styles.shutterButtonInner} />
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </View>
@@ -186,13 +188,11 @@ const styles = StyleSheet.create({
   // Overlay for controls positioned absolutely
   controlsOverlay: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'transparent',
   },
 
+  // Top controls
   topControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -200,48 +200,44 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
 
+  // Bottom controls column
   bottomControls: {
     position: 'absolute',
     bottom: 34,
     left: 0,
     right: 0,
+    alignItems: 'center',
+    gap: 14,
     paddingHorizontal: 16,
   },
-  bottomRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
 
+  // Shared buttons (x, flash, flip, zoom)
   circleBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: Colors.button.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   smallBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: Colors.button.secondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
   disabledBtn: {
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    opacity: 0, // when disabled, hide completely (as requested)
   },
 
+  // Zoom row centered above shutter
   zoomCluster: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    width: width * 0.32,
-    justifyContent: 'flex-start',
+    gap: 12,
+    justifyContent: 'center',
   },
   zoomLabel: {
     minWidth: 48,
@@ -249,30 +245,28 @@ const styles = StyleSheet.create({
     fontFamily: 'Jua-Regular',
     fontSize: FontSizes.body.fontSize,
     lineHeight: FontSizes.body.lineHeight,
-    color: Colors.white,
+    color: Colors.primary.text, // requested text color
   },
 
+  // Shutter (apple-like outer fill + inner 2px ring)
   shutterButton: {
     width: 84,
     height: 84,
     borderRadius: 42,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.input.background, // requested
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 4,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   shutterButtonInner: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Colors.white,
+    borderWidth: 2,
+    borderColor: Colors.input.border, // requested inner 2px ring
+    backgroundColor: 'transparent',
   },
 
-  rightSpacer: { 
-    width: width * 0.32 
-  },
-
+  // Permission UI
   permissionContainer: {
     flex: 1, 
     justifyContent: 'center', 
