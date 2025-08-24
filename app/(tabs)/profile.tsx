@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LogOut, CreditCard as Edit3, Calendar, Heart, TrendingUp, Users } from 'lucide-react-native';
+import { LogOut, Menu as Edit3, Calendar, Heart, TrendingUp, Users } from 'lucide-react-native';
 import { Colors, FontSizes } from '@/constants';
 import { Profile, ProfileStats } from '@/types/profile';
 import { ProfileStorage } from '@/utils/profileStorage';
