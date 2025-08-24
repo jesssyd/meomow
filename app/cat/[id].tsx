@@ -113,7 +113,7 @@ export default function CatDetailScreen() {
       {/* Pattern above background color, below all content */}
       <View style={styles.patternContainer} pointerEvents="none">
         <Image
-          source={require('@/assets/images/pawprint.png')}
+          source={require('@/assets/images/background.png')}
           style={styles.bgPattern}
         />
       </View>
