@@ -51,23 +51,17 @@ export default function AddCatScreen() {
 
   const isEditing = !!catId;
 
-  // Pick up any newly confirmed photos when you return from the camera/preview
   useFocusEffect(
     useCallback(() => {
       const newOnes = PhotoInbox.consumeAll();
-      
       if (newOnes.length) {
         setFormData(prev => {
           const combined = [...prev.photoUris, ...newOnes];
-          const capped = combined.slice(0, 3); // cap at 3
-          
-          return {
-            ...prev,
-            photoUris: capped,
-          };
+          const capped = combined.slice(0, 3);
+          return { ...prev, photoUris: capped };
         });
       }
-    }, []) // Remove formData dependency to avoid stale closure
+    }, [])
   );
 
   useEffect(() => {
@@ -76,23 +70,20 @@ export default function AddCatScreen() {
         setLoading(true);
         try {
           const cat = await CatStorage.getCatById(catId);
-          
           if (cat) {
-            // Ensure we're using the photoUris array properly
-            const photoUris = cat.photoUris && cat.photoUris.length > 0 
-              ? cat.photoUris 
-              : cat.photoUri 
-                ? [cat.photoUri] 
+            const photoUris = cat.photoUris && cat.photoUris.length > 0
+              ? cat.photoUris
+              : cat.photoUri
+                ? [cat.photoUri]
                 : [];
-            
             setFormData({
               name: cat.name ?? '',
-              location: cat.location ?? { address: 'Unknown location' },
+              location: cat.location ?? { address: 'unknown location' },
               breed: cat.breed ?? '',
               age: cat.age ?? '',
               personality: Array.isArray(cat.personality) ? cat.personality : [],
               notes: cat.notes ?? '',
-              photoUris: photoUris,
+              photoUris,
             });
           }
         } finally {
@@ -117,7 +108,6 @@ export default function AddCatScreen() {
   };
 
   const handleTakePhoto = () => {
-    // push camera (add-cat stays mounted under it)
     router.push('/camera');
   };
 
@@ -129,7 +119,7 @@ export default function AddCatScreen() {
         style: 'destructive',
         onPress: () => {
           setFormData(prev => {
-            const next = [...prev.photoUris]; // Create a new array
+            const next = [...prev.photoUris];
             next.splice(index, 1);
             return { ...prev, photoUris: next };
           });
@@ -166,7 +156,6 @@ export default function AddCatScreen() {
       const cat: Cat = {
         id: catId || (uuid.v4() as string),
         name: formData.name.trim() || '???',
-        // keep both fields for compatibility
         photoUri: latest,
         photoUris: photos,
         location: formData.location,
@@ -180,7 +169,6 @@ export default function AddCatScreen() {
 
       await CatStorage.saveCat(cat);
 
-      // Reset for next add
       if (!isEditing) {
         setFormData({ ...initialForm });
         await getCurrentLocation();
@@ -200,6 +188,11 @@ export default function AddCatScreen() {
   if (loading && isEditing) {
     return (
       <SafeAreaView style={styles.container}>
+        {/* background image layer */}
+        <View style={styles.patternContainer} pointerEvents="none">
+          <Image source={require('@/assets/images/background.png')} style={styles.bgPattern} resizeMode="cover" />
+        </View>
+
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary.text} />
           <Text style={styles.loadingText}>loading cat data...</Text>
@@ -212,113 +205,134 @@ export default function AddCatScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={24} color={Colors.primary.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{isEditing ? 'edit cat!' : 'new cat!'}</Text>
-        <View style={styles.headerSpacer} />
+      {/* background image layer */}
+      <View style={styles.patternContainer} pointerEvents="none">
+        <Image source={require('@/assets/images/background.png')} style={styles.bgPattern} resizeMode="cover" />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>photos ({formData.photoUris.length}/3)</Text>
+      {/* foreground content */}
+      <View style={styles.contentLayer}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <ArrowLeft size={24} color={Colors.primary.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{isEditing ? 'edit cat!' : 'new cat!'}</Text>
+          <View style={styles.headerSpacer} />
+        </View>
 
-          {/* Photo grid */}
-          <View style={styles.grid}>
-            {formData.photoUris.map((uri, idx) => (
-              <View key={`${uri}-${idx}`} style={styles.tile}>
-                <Image source={{ uri }} style={styles.tileImg} />
-                <TouchableOpacity style={styles.deleteBadge} onPress={() => handleDeletePhoto(idx)}>
-                  <XIcon size={16} color={Colors.white} />
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>photos ({formData.photoUris.length}/3)</Text>
+
+            <View style={styles.grid}>
+              {formData.photoUris.map((uri, idx) => (
+                <View key={`${uri}-${idx}`} style={styles.tile}>
+                  <Image source={{ uri }} style={styles.tileImg} />
+                  <TouchableOpacity style={styles.deleteBadge} onPress={() => handleDeletePhoto(idx)}>
+                    <XIcon size={16} color={Colors.white} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+
+              {canAddMore && (
+                <TouchableOpacity style={[styles.tile, styles.addTile]} onPress={handleTakePhoto}>
+                  <Camera size={28} color={Colors.primary.text} />
+                  <Text style={styles.addTileText}>add</Text>
                 </TouchableOpacity>
-              </View>
-            ))}
-
-            {canAddMore && (
-              <TouchableOpacity style={[styles.tile, styles.addTile]} onPress={handleTakePhoto}>
-                <Camera size={28} color={Colors.primary.text} />
-                <Text style={styles.addTileText}>add</Text>
-              </TouchableOpacity>
-            )}
+              )}
+            </View>
           </View>
-        </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>what's their name?</Text>
-          <TextInput
-            style={styles.inputField}
-            value={formData.name}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
-            placeholder="add name"
-            placeholderTextColor={Colors.primary.textInactive}
-          />
-        </View>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>what's their name?</Text>
+            <TextInput
+              style={styles.inputField}
+              value={formData.name}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
+              placeholder="add name"
+              placeholderTextColor={Colors.primary.textInactive}
+            />
+          </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>where did you find them?</Text>
-          <TouchableOpacity style={styles.inputField} onPress={getCurrentLocation} disabled={locationLoading}>
-            <MapPin size={16} color={Colors.primary.text} />
-            <Text style={styles.inputFieldText}>
-              {locationLoading ? 'getting location...' : formData.location.address}
-            </Text>
-            {locationLoading ? <ActivityIndicator size="small" color={Colors.primary.text} /> : <RefreshCw size={16} color={Colors.primary.text} />}
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>where did you find them?</Text>
+            <TouchableOpacity style={styles.inputField} onPress={getCurrentLocation} disabled={locationLoading}>
+              <MapPin size={16} color={Colors.primary.text} />
+              <Text style={styles.inputFieldText}>
+                {locationLoading ? 'getting location...' : formData.location.address}
+              </Text>
+              {locationLoading ? (
+                <ActivityIndicator size="small" color={Colors.primary.text} />
+              ) : (
+                <RefreshCw size={16} color={Colors.primary.text} />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>what kind of cat?</Text>
+            <Select
+              value={formData.breed}
+              options={BREEDS}
+              placeholder="choose"
+              onChange={(v) => setFormData(p => ({ ...p, breed: v }))}
+            />
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>how old are they?</Text>
+            <Select
+              value={formData.age}
+              options={AGES}
+              placeholder="choose"
+              onChange={(v) => setFormData(p => ({ ...p, age: v }))}
+            />
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>personality</Text>
+            <View style={styles.personalityContainer}>
+              {PERSONALITY_OPTIONS.map((trait) => (
+                <PersonalityChip
+                  key={trait}
+                  label={trait}
+                  selected={formData.personality.includes(trait)}
+                  onPress={handlePersonalityToggle}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>notes</Text>
+            <TextInput
+              style={[styles.inputField, styles.notesInput]}
+              value={formData.notes}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
+              placeholder="add notes"
+              placeholderTextColor={Colors.primary.textInactive}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+            />
+          </View>
+
+          <View style={styles.bottomSpacer} />
+        </ScrollView>
+
+        <View style={styles.saveButtonContainer}>
+          <TouchableOpacity
+            style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
+            onPress={handleSave}
+            disabled={!canSave}
+          >
+            {loading ? (
+              <ActivityIndicator size="small" color={Colors.button.primaryText} />
+            ) : (
+              <Text style={styles.saveButtonText}>{isEditing ? 'update cat' : 'save to catalog'}</Text>
+            )}
           </TouchableOpacity>
         </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>what kind of cat?</Text>
-          <Select value={formData.breed} options={BREEDS} placeholder="choose" onChange={(v) => setFormData(p => ({ ...p, breed: v }))} />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>how old are they?</Text>
-          <Select value={formData.age} options={AGES} placeholder="choose" onChange={(v) => setFormData(p => ({ ...p, age: v }))} />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>personality</Text>
-          <View style={styles.personalityContainer}>
-            {PERSONALITY_OPTIONS.map((trait) => (
-              <PersonalityChip
-                key={trait}
-                label={trait}
-                selected={formData.personality.includes(trait)}
-                onPress={handlePersonalityToggle}
-              />
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>notes</Text>
-          <TextInput
-            style={[styles.inputField, styles.notesInput]}
-            value={formData.notes}
-            onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
-            placeholder="add notes"
-            placeholderTextColor={Colors.primary.textInactive}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-        </View>
-
-        <View style={styles.bottomSpacer} />
-      </ScrollView>
-
-      <View style={styles.saveButtonContainer}>
-        <TouchableOpacity
-          style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
-          onPress={handleSave}
-          disabled={!canSave}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color={Colors.button.primaryText} />
-          ) : (
-            <Text style={styles.saveButtonText}>{isEditing ? 'update cat' : 'save to catalog'}</Text>
-          )}
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -327,11 +341,29 @@ export default function AddCatScreen() {
 const TILE_HEIGHT = 112;
 
 const styles = StyleSheet.create({
-  // Layout
+  // base
   container: {
     flex: 1,
     backgroundColor: Colors.primary.background,
   },
+
+  // background image layer
+  patternContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+    overflow: 'hidden',
+  },
+  bgPattern: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.05,
+  },
+
+  // foreground wrapper
+  contentLayer: {
+    flex: 1,
+    zIndex: 1,
+  },
+
   content: {
     flex: 1,
     paddingHorizontal: 20,
@@ -340,7 +372,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
-  // Loading
+  // loading
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -353,7 +385,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
 
-  // Header
+  // header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -377,7 +409,7 @@ const styles = StyleSheet.create({
     width: 44,
   },
 
-  // Section labels
+  // section labels
   sectionLabel: {
     fontFamily: 'Jua-Regular',
     ...FontSizes.body,
@@ -385,7 +417,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  // Input fields (consistent styling)
+  // inputs
   inputField: {
     backgroundColor: Colors.input.background,
     borderRadius: 8,
@@ -414,7 +446,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
 
-  // Photo grid
+  // photo grid
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -457,14 +489,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Personality
+  // personality
   personalityContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
 
-  // Save button
+  // save button
   saveButtonContainer: {
     position: 'absolute',
     bottom: 0,
@@ -491,7 +523,7 @@ const styles = StyleSheet.create({
     color: Colors.button.primaryText,
   },
 
-  // Spacing
+  // spacing
   bottomSpacer: {
     height: 100,
   },
