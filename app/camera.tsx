@@ -13,8 +13,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, SwitchCamera, Zap, ZapOff, Plus, Minus } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
-import { PhotoInbox } from '@/utils/photoInbox';
-
+import { FontSizes } from '@/constants/Fonts';
 
 const { width } = Dimensions.get('window');
 
@@ -56,28 +55,27 @@ export default function CameraScreen() {
   const zoomOut = () => setZoom(z => clamp(z - ZOOM_STEP));
   const zoomIn  = () => setZoom(z => clamp(z + ZOOM_STEP));
 
- const takePicture = async () => {
-  if (!cameraRef.current) return;
+  const takePicture = async () => {
+    if (!cameraRef.current) return;
 
-  try {
-    const photo = await cameraRef.current.takePictureAsync({
-      quality: 0.8,
-      base64: false,
-      skipProcessing: true,
-    });
+    try {
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        base64: false,
+        skipProcessing: true,
+      });
 
-    if (photo?.uri) {
-      // Put the new photo into the inbox so AddCatScreen can pick it up
-      PhotoInbox.push(photo.uri);
-
-      // Close the camera to go back to AddCatScreen
-      router.back();
+      if (photo?.uri) {
+        // Navigate to photo preview screen instead of directly going back
+        router.push({
+          pathname: '/photo-preview',
+          params: { photoUri: photo.uri }
+        });
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
     }
-  } catch (error) {
-    Alert.alert('Error', 'Failed to take photo. Please try again.');
-  }
-};
-
+  };
 
   const handleCancel = () => router.back();
 
@@ -177,8 +175,13 @@ export default function CameraScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.black },
-  camera: { flex: 1 },
+  container: { 
+    flex: 1, 
+    backgroundColor: Colors.black 
+  },
+  camera: { 
+    flex: 1 
+  },
   
   // Overlay for controls positioned absolutely
   controlsOverlay: {
@@ -244,15 +247,16 @@ const styles = StyleSheet.create({
     minWidth: 48,
     textAlign: 'center',
     fontFamily: 'Jua-Regular',
-    fontSize: 16,
-    color: 'white',
+    fontSize: FontSizes.body.fontSize,
+    lineHeight: FontSizes.body.lineHeight,
+    color: Colors.white,
   },
 
   shutterButton: {
     width: 84,
     height: 84,
     borderRadius: 42,
-    backgroundColor: 'white',
+    backgroundColor: Colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 4,
@@ -262,7 +266,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'white',
+    backgroundColor: Colors.white,
   },
 
   rightSpacer: { 
@@ -270,25 +274,58 @@ const styles = StyleSheet.create({
   },
 
   permissionContainer: {
-    flex: 1, justifyContent: 'center', alignItems: 'center',
-    paddingHorizontal: 40, backgroundColor: Colors.primary.backgroundAlt,
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center',
+    paddingHorizontal: 40, 
+    backgroundColor: Colors.primary.backgroundAlt,
   },
   permissionTitle: {
-    fontFamily: 'Jua-Regular', fontSize: 24, color: Colors.primary.text,
-    textAlign: 'center', marginBottom: 16,
+    fontFamily: 'Jua-Regular', 
+    fontSize: FontSizes.heading.fontSize,
+    lineHeight: FontSizes.heading.lineHeight,
+    color: Colors.primary.text,
+    textAlign: 'center', 
+    marginBottom: 16,
   },
   permissionText: {
-    fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.primary.text,
-    textAlign: 'center', marginBottom: 30, lineHeight: 22,
+    fontFamily: 'Jua-Regular', 
+    fontSize: FontSizes.body.fontSize,
+    lineHeight: FontSizes.body.lineHeight,
+    color: Colors.primary.text,
+    textAlign: 'center', 
+    marginBottom: 30,
   },
   permissionButton: {
-    backgroundColor: Colors.button.primary, paddingHorizontal: 32,
-    paddingVertical: 16, borderRadius: 8, marginBottom: 12,
+    backgroundColor: Colors.button.primary, 
+    paddingHorizontal: 32,
+    paddingVertical: 16, 
+    borderRadius: 8, 
+    marginBottom: 12,
   },
   permissionButtonText: {
-    fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.button.primaryText, textAlign: 'center',
+    fontFamily: 'Jua-Regular', 
+    fontSize: FontSizes.body.fontSize,
+    lineHeight: FontSizes.body.lineHeight,
+    color: Colors.button.primaryText, 
+    textAlign: 'center',
   },
-  cancelButton: { paddingHorizontal: 32, paddingVertical: 16 },
-  cancelButtonText: { fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.primary.text, textAlign: 'center' },
-  message: { fontFamily: 'Jua-Regular', fontSize: 16, color: Colors.white, textAlign: 'center' },
+  cancelButton: { 
+    paddingHorizontal: 32, 
+    paddingVertical: 16 
+  },
+  cancelButtonText: { 
+    fontFamily: 'Jua-Regular', 
+    fontSize: FontSizes.body.fontSize,
+    lineHeight: FontSizes.body.lineHeight,
+    color: Colors.primary.text, 
+    textAlign: 'center' 
+  },
+  message: { 
+    fontFamily: 'Jua-Regular', 
+    fontSize: FontSizes.body.fontSize,
+    lineHeight: FontSizes.body.lineHeight,
+    color: Colors.white, 
+    textAlign: 'center' 
+  },
 });
