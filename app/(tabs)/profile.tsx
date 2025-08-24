@@ -1,3 +1,4 @@
+// app/profile.tsx
 import { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -11,7 +12,7 @@ import {
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LogOut, CreditCard as Edit3, Calendar, Heart, TrendingUp, Users } from 'lucide-react-native';
+import { LogOut, Menu as Edit3, Calendar, Heart, TrendingUp, Users } from 'lucide-react-native';
 import { Colors, FontSizes } from '@/constants';
 import { Profile, ProfileStats } from '@/types/profile';
 import { ProfileStorage } from '@/utils/profileStorage';
@@ -49,45 +50,52 @@ export default function ProfileScreen() {
   const [stats, setStats] = useState<ProfileStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadProfileData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const currentProfile = await ProfileStorage.getCurrentProfile();
-      
-      if (!currentProfile) {
-        router.replace('/profile-setup');
-        return;
+  const loadProfileData = useCallback(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const currentProfile = await ProfileStorage.getCurrentProfile();
+        
+        if (!currentProfile) {
+          router.replace('/profile-setup');
+          return;
+        }
+
+        setProfile(currentProfile);
+
+        const cats = await CatStorage.getAllCats(currentProfile.id);
+        const topTraits = getTopPersonalityTraits(cats);
+        
+        const now = new Date();
+        const createdDate = new Date(currentProfile.dateCreated);
+        const monthsDiff = Math.max(1, (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+        
+        const profileStats: ProfileStats = {
+          totalCats: cats.length,
+          mostRecentDiscovery: cats.length > 0 
+            ? cats.sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime())[0]?.dateAdded
+            : undefined,
+          favoritePersonalityTraits: topTraits,
+          discoveryStreak: cats.length,
+          averageCatsPerMonth: Math.round((cats.length / monthsDiff) * 10) / 10,
+        };
+
+        setStats(profileStats);
+      } catch (error) {
+        console.error('error loading profile data:', error);
+      } finally {
+        setLoading(false);
       }
-
-      setProfile(currentProfile);
-
-      // Calculate stats
-      const cats = await CatStorage.getAllCats(currentProfile.id);
-      const topTraits = getTopPersonalityTraits(cats);
-      
-      const now = new Date();
-      const createdDate = new Date(currentProfile.dateCreated);
-      const monthsDiff = Math.max(1, (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
-      
-      const profileStats: ProfileStats = {
-        totalCats: cats.length,
-        mostRecentDiscovery: cats.length > 0 
-          ? cats.sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime())[0]?.dateAdded
-          : undefined,
-        favoritePersonalityTraits: topTraits,
-        discoveryStreak: cats.length, // simplified for now
-        averageCatsPerMonth: Math.round((cats.length / monthsDiff) * 10) / 10,
-      };
-
-      setStats(profileStats);
-    } catch (error) {
-      console.error('Error loading profile data:', error);
-    } finally {
-      setLoading(false);
-    }
+    };
+    
+    fetchData();
   }, [router]);
 
-  useFocusEffect(loadProfileData);
+  useFocusEffect(
+    useCallback(() => {
+      loadProfileData();
+    }, [loadProfileData])
+  );
 
   const handleSwitchProfile = () => {
     Alert.alert(
@@ -115,8 +123,11 @@ export default function ProfileScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.patternContainer} pointerEvents="none">
-          <Image source={require('@/assets/images/background.png')} style={styles.bgPattern} resizeMode="cover" />
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
+            <Text style={styles.headerTitle}>profile</Text>
+            <View style={styles.headerButton} />
+          </View>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary.text} />
@@ -130,12 +141,11 @@ export default function ProfileScreen() {
     return null;
   }
 
+  // optional new field for image-based avatar
+  const profileImageUri = (profile as any).profileImageUri as string | undefined;
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.patternContainer} pointerEvents="none">
-        {/* <Image source={require('@/assets/images/background.png')} style={styles.bgPattern} resizeMode="cover" /> */}
-      </View>
-
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>profile</Text>
@@ -146,107 +156,105 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Profile Card */}
-          <View style={styles.profileCard}>
-            <View style={[styles.profileAvatar, { backgroundColor: profile.profileColor }]}>
-              <Text style={styles.profileEmoji}>{profile.profileEmoji}</Text>
+        {/* Profile Card */}
+        <View style={styles.profileCard}>
+          <View style={styles.profileAvatar}>
+            {profileImageUri ? (
+              <Image source={{ uri: profileImageUri }} style={styles.profileAvatarImg} />
+            ) : (
+              <>
+                <View style={[styles.profileAvatarFallback]} />
+                <Text style={styles.profileAvatarFallbackText}>no photo</Text>
+              </>
+            )}
+          </View>
+          <Text style={styles.displayName}>{profile.displayName}</Text>
+          <Text style={styles.username}>@{profile.username}</Text>
+          <Text style={styles.memberSince}>
+            member since {formatDate(profile.dateCreated)}
+          </Text>
+        </View>
+
+        {/* Stats Grid */}
+        <View style={styles.statsContainer}>
+          <Text style={styles.sectionTitle}>discovery stats</Text>
+          
+          <View style={styles.statsGrid}>
+            <View style={styles.statCard}>
+              <Heart size={24} color={Colors.primary.text} />
+              <Text style={styles.statNumber}>{stats.totalCats}</Text>
+              <Text style={styles.statLabel}>cats found</Text>
             </View>
-            <Text style={styles.displayName}>{profile.displayName}</Text>
-            <Text style={styles.username}>@{profile.username}</Text>
-            <Text style={styles.memberSince}>
-              member since {formatDate(profile.dateCreated)}
+
+            <View style={styles.statCard}>
+              <TrendingUp size={24} color={Colors.primary.text} />
+              <Text style={styles.statNumber}>{stats.averageCatsPerMonth}</Text>
+              <Text style={styles.statLabel}>per month</Text>
+            </View>
+
+            <View style={styles.statCard}>
+              <Calendar size={24} color={Colors.primary.text} />
+              <Text style={styles.statNumber}>{stats.discoveryStreak}</Text>
+              <Text style={styles.statLabel}>streak</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Favorite Traits */}
+        {stats.favoritePersonalityTraits.length > 0 && (
+          <View style={styles.traitsContainer}>
+            <Text style={styles.sectionTitle}>favorite cat personalities</Text>
+            <View style={styles.traitsGrid}>
+              {stats.favoritePersonalityTraits.map((trait, index) => (
+                <View key={trait} style={styles.traitChip}>
+                  <Text style={styles.traitText}>#{index + 1} {trait}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Most Recent Discovery */}
+        {stats.mostRecentDiscovery && (
+          <View style={styles.recentContainer}>
+            <Text style={styles.sectionTitle}>most recent discovery</Text>
+            <Text style={styles.recentDate}>
+              {formatDate(stats.mostRecentDiscovery)}
             </Text>
           </View>
+        )}
 
-          {/* Stats Grid */}
-          <View style={styles.statsContainer}>
-            <Text style={styles.sectionTitle}>discovery stats</Text>
-            
-            <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
-                <Heart size={24} color={Colors.primary.text} />
-                <Text style={styles.statNumber}>{stats.totalCats}</Text>
-                <Text style={styles.statLabel}>cats found</Text>
-              </View>
+        {/* Actions */}
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity style={styles.actionButton} onPress={handleSwitchProfile}>
+            <Users size={20} color={Colors.primary.text} />
+            <Text style={styles.actionText}>switch profile</Text>
+          </TouchableOpacity>
+        </View>
 
-              <View style={styles.statCard}>
-                <TrendingUp size={24} color={Colors.primary.text} />
-                <Text style={styles.statNumber}>{stats.averageCatsPerMonth}</Text>
-                <Text style={styles.statLabel}>per month</Text>
-              </View>
-
-              <View style={styles.statCard}>
-                <Calendar size={24} color={Colors.primary.text} />
-                <Text style={styles.statNumber}>{stats.discoveryStreak}</Text>
-                <Text style={styles.statLabel}>streak</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Favorite Traits */}
-          {stats.favoritePersonalityTraits.length > 0 && (
-            <View style={styles.traitsContainer}>
-              <Text style={styles.sectionTitle}>favorite cat personalities</Text>
-              <View style={styles.traitsGrid}>
-                {stats.favoritePersonalityTraits.map((trait, index) => (
-                  <View key={trait} style={styles.traitChip}>
-                    <Text style={styles.traitText}>#{index + 1} {trait}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {/* Most Recent Discovery */}
-          {stats.mostRecentDiscovery && (
-            <View style={styles.recentContainer}>
-              <Text style={styles.sectionTitle}>most recent discovery</Text>
-              <Text style={styles.recentDate}>
-                {formatDate(stats.mostRecentDiscovery)}
-              </Text>
-            </View>
-          )}
-
-          {/* Actions */}
-          <View style={styles.actionsContainer}>
-            <TouchableOpacity style={styles.actionButton} onPress={handleSwitchProfile}>
-              <Users size={20} color={Colors.primary.text} />
-              <Text style={styles.actionText}>switch profile</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
-      </View>
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
+
+const AVATAR_SIZE = 88;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.primary.backgroundAlt,
   },
-  patternContainer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 0,
-    overflow: 'hidden',
-  },
-  bgPattern: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.05,
-  },
-  contentLayer: {
-    flex: 1,
-    zIndex: 1,
-  },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 60,
     paddingBottom: 16,
+    backgroundColor: Colors.primary.backgroundAlt,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerTitle: {
     fontFamily: 'Jua-Regular',
@@ -265,8 +273,9 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 24,
   },
   loadingText: {
     fontFamily: 'Jua-Regular',
@@ -280,22 +289,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.input.background,
     borderRadius: 16,
-    paddingVertical: 32,
+    paddingVertical: 28,
     paddingHorizontal: 24,
     marginBottom: 24,
     borderWidth: 1,
     borderColor: Colors.input.border,
   },
   profileAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    overflow: 'hidden',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'center',
+    marginBottom: 14,
+    backgroundColor: Colors.inputAlt.background,
+    borderWidth: 1,
+    borderColor: Colors.input.border,
   },
-  profileEmoji: {
-    fontSize: 36,
+  profileAvatarImg: {
+    width: '100%',
+    height: '100%',
+  },
+  profileAvatarFallback: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  profileAvatarFallbackText: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.caption,
+    color: Colors.primary.textInactive,
   },
   displayName: {
     fontFamily: 'Jua-Regular',
