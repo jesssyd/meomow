@@ -1,20 +1,10 @@
+// utils/profileStorage.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Profile } from '@/types/profile';
 import uuid from 'react-native-uuid';
 
 const PROFILES_KEY = 'meomow_profiles';
 const CURRENT_PROFILE_KEY = 'meomow_current_profile';
-
-const PROFILE_COLORS = [
-  '#FFB6C1', '#98FB98', '#87CEEB', '#DDA0DD', '#F0E68C', 
-  '#FFA07A', '#20B2AA', '#FF69B4', '#32CD32', '#FF6347'
-];
-
-const PROFILE_EMOJIS = ['😸', '😺', '😻', '😽', '🙀', '😿', '😾', '🐱', '🐈', '🐈‍⬛'];
-
-function getRandomItem<T>(array: T[]): T {
-  return array[Math.floor(Math.random() * array.length)];
-}
 
 async function readAllProfiles(): Promise<Profile[]> {
   try {
@@ -23,7 +13,7 @@ async function readAllProfiles(): Promise<Profile[]> {
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
-    console.error('Error reading profiles:', err);
+    console.error('error reading profiles:', err);
     return [];
   }
 }
@@ -32,7 +22,7 @@ async function writeAllProfiles(profiles: Profile[]): Promise<void> {
   try {
     await AsyncStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
   } catch (err) {
-    console.error('Error saving profiles:', err);
+    console.error('error saving profiles:', err);
     throw err;
   }
 }
@@ -50,7 +40,7 @@ export const ProfileStorage = {
       const profiles = await readAllProfiles();
       return profiles.find(p => p.id === currentId) || null;
     } catch (err) {
-      console.error('Error getting current profile:', err);
+      console.error('error getting current profile:', err);
       return null;
     }
   },
@@ -59,7 +49,7 @@ export const ProfileStorage = {
     try {
       await AsyncStorage.setItem(CURRENT_PROFILE_KEY, profileId);
       
-      // Update last active timestamp
+      // update last active timestamp
       const profiles = await readAllProfiles();
       const profile = profiles.find(p => p.id === profileId);
       if (profile) {
@@ -67,33 +57,39 @@ export const ProfileStorage = {
         await writeAllProfiles(profiles);
       }
     } catch (err) {
-      console.error('Error setting current profile:', err);
+      console.error('error setting current profile:', err);
       throw err;
     }
   },
 
-  async createProfile(username: string, displayName?: string): Promise<Profile> {
+  // add optional profileImageUri arg, deprecate color and emoji
+  async createProfile(username: string, displayName?: string, profileImageUri?: string): Promise<Profile> {
     try {
       const profiles = await readAllProfiles();
       
-      // Check if username already exists
+      // check if username already exists
       const existing = profiles.find(p => p.username.toLowerCase() === username.toLowerCase());
       if (existing) {
-        throw new Error('Username already exists');
+        throw new Error('username already exists');
       }
 
       const now = new Date().toISOString();
+      // keep backward compatibility by including empty strings for old fields
       const newProfile: Profile = {
         id: uuid.v4() as string,
         username: username.trim(),
         displayName: displayName?.trim() || username.trim(),
-        profileColor: getRandomItem(PROFILE_COLORS),
-        profileEmoji: getRandomItem(PROFILE_EMOJIS),
+        // legacy fields retained but unused by UI
+        profileColor: '',
+        profileEmoji: '',
         dateCreated: now,
         lastActive: now,
         totalCatsFound: 0,
         favoritePersonalityTraits: [],
       };
+
+      // store new optional image field alongside the profile
+      (newProfile as any).profileImageUri = profileImageUri;
 
       profiles.push(newProfile);
       await writeAllProfiles(profiles);
@@ -101,26 +97,27 @@ export const ProfileStorage = {
       
       return newProfile;
     } catch (err) {
-      console.error('Error creating profile:', err);
+      console.error('error creating profile:', err);
       throw err;
     }
   },
 
-  async updateProfile(profileId: string, updates: Partial<Profile>): Promise<Profile> {
+  // allow updating optional image field
+  async updateProfile(profileId: string, updates: Partial<Profile> & { profileImageUri?: string }): Promise<Profile> {
     try {
       const profiles = await readAllProfiles();
       const index = profiles.findIndex(p => p.id === profileId);
       
       if (index === -1) {
-        throw new Error('Profile not found');
+        throw new Error('profile not found');
       }
 
-      profiles[index] = { ...profiles[index], ...updates };
+      profiles[index] = { ...profiles[index], ...updates } as Profile;
       await writeAllProfiles(profiles);
       
       return profiles[index];
     } catch (err) {
-      console.error('Error updating profile:', err);
+      console.error('error updating profile:', err);
       throw err;
     }
   },
@@ -131,12 +128,12 @@ export const ProfileStorage = {
       const filtered = profiles.filter(p => p.id !== profileId);
       
       if (filtered.length === profiles.length) {
-        return false; // Profile not found
+        return false;
       }
 
       await writeAllProfiles(filtered);
       
-      // If this was the current profile, clear it
+      // if this was the current profile, clear it
       const currentId = await AsyncStorage.getItem(CURRENT_PROFILE_KEY);
       if (currentId === profileId) {
         await AsyncStorage.removeItem(CURRENT_PROFILE_KEY);
@@ -144,7 +141,7 @@ export const ProfileStorage = {
       
       return true;
     } catch (err) {
-      console.error('Error deleting profile:', err);
+      console.error('error deleting profile:', err);
       throw err;
     }
   },
@@ -159,7 +156,7 @@ export const ProfileStorage = {
         await writeAllProfiles(profiles);
       }
     } catch (err) {
-      console.error('Error incrementing cat count:', err);
+      console.error('error incrementing cat count:', err);
     }
   },
 };
