@@ -1,4 +1,3 @@
-// Catalog screen with white frame card
 import { useCallback, useState, useEffect } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -12,26 +11,22 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const H_PADDING = 16;
 const GUTTER = 16;
 const CARD_WIDTH = (SCREEN_WIDTH - H_PADDING * 2 - GUTTER) / 2;
-
-// Frame geometry
 const FRAME_W = 172;
 const FRAME_H = 204;
 const CUTOUT_W = 135;
 const CUTOUT_H = 121;
 const CUTOUT_TOP = 20;
 
-// Text box geometry
-const TEXT_W_RAW = 160;
-const TEXT_H_RAW = 57;
-
-// Scale to device width
+// Scale all inner measurements to our card width
 const SCALE = CARD_WIDTH / FRAME_W;
 const CARD_HEIGHT = FRAME_H * SCALE;
+
+// Scaled cutout rect and text box
 const PHOTO_W = CUTOUT_W * SCALE;
 const PHOTO_H = CUTOUT_H * SCALE;
 const PHOTO_TOP = CUTOUT_TOP * SCALE;
-const TEXT_W = TEXT_W_RAW * SCALE;
-const TEXT_H = TEXT_H_RAW * SCALE;
+const TEXT_W = 160 * SCALE;
+const TEXT_H = 57 * SCALE;
 
 function formatDate(iso?: string) {
   if (!iso) return 'unknown date';
@@ -64,8 +59,17 @@ export default function CatalogScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>catalog</Text>
-          <Text style={styles.subtitle}>...</Text>
+          <View style={styles.headerContent}>
+            <View>
+              <Text style={styles.title}>catalog</Text>
+              <Text style={styles.subtitle}>...</Text>
+            </View>
+            <Image 
+              source={require('@/assets/images/meomow-logo.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
         </View>
         <View style={styles.center}>
           <Text style={styles.loading}>loading kitties...</Text>
@@ -78,8 +82,17 @@ export default function CatalogScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>catalog</Text>
-          <Text style={styles.subtitle}>0 kitties found</Text>
+          <View style={styles.headerContent}>
+            <View>
+              <Text style={styles.title}>catalog</Text>
+              <Text style={styles.subtitle}>0 kitties found</Text>
+            </View>
+            <Image 
+              source={require('@/assets/images/meomow-logo.png')} 
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
         </View>
         <View style={styles.center}>
           <Text style={styles.emptyHeading}>meow! no cats here...</Text>
@@ -92,10 +105,19 @@ export default function CatalogScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>catalog</Text>
-        <Text style={styles.subtitle}>
-          {cats.length} {cats.length === 1 ? 'kitty' : 'kitties'} found
-        </Text>
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.title}>catalog</Text>
+            <Text style={styles.subtitle}>
+              {cats.length} {cats.length === 1 ? 'kitty' : 'kitties'} found
+            </Text>
+          </View>
+          <Image 
+            source={require('@/assets/images/meomow-logo.png')} 
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
       </View>
 
       <FlatList
@@ -118,7 +140,7 @@ export default function CatalogScreen() {
               style={styles.cardTap}
             >
               <View style={styles.frameBox}>
-                {/* Photo behind the white frame */}
+                {/* Photo sits BEHIND the frame, positioned to the cutout */}
                 {latestPhoto ? (
                   <Image
                     source={{ uri: latestPhoto }}
@@ -129,14 +151,14 @@ export default function CatalogScreen() {
                   <View style={[styles.photo, { backgroundColor: 'rgba(56,48,41,0.1)' }]} />
                 )}
 
-                {/* White frame overlay */}
+                {/* Frame overlay fills the card */}
                 <Image
-                  source={require('@/assets/images/frameWhite.png')}
+                  source={require('@/assets/images/framePink.png')}
                   style={styles.frameOverlay}
                   resizeMode="stretch"
                 />
 
-                {/* Bottom text box, centered inside */}
+                {/* Bottom text box, centered */}
                 <View style={styles.textBox}>
                   <Text style={styles.date}>{formatDate(item.lastUpdated || item.dateAdded)}</Text>
                   <Text style={styles.name}>{item.name || '???'}</Text>
@@ -160,6 +182,15 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 16,
     backgroundColor: Colors.primary.backgroundAlt,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  logo: {
+    height: 50,
+    width: 50,
   },
   title: {
     fontFamily: 'Jua-Regular',
@@ -213,23 +244,22 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
   },
 
-  // Frame root
+  // Root of a single framed card
   frameBox: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
   },
 
-  // Photo positioned to the cutout window
+  // Scaled photo positioned to the cutout window
   photo: {
     position: 'absolute',
     width: PHOTO_W,
     height: PHOTO_H,
     top: PHOTO_TOP,
-    left: (CARD_WIDTH - PHOTO_W) / 2,
-    borderRadius: 6,
+    left: (CARD_WIDTH - PHOTO_W) / 2, // center horizontally in the window
   },
 
-  // Frame overlay
+  // Frame image overlay across the whole card
   frameOverlay: {
     position: 'absolute',
     width: CARD_WIDTH,
@@ -238,7 +268,7 @@ const styles = StyleSheet.create({
     top: 0,
   },
 
-  // Text box 160x57 scaled, centered and pinned to bottom
+  // Bottom text box: 160×57 scaled, centered, pinned to bottom
   textBox: {
     position: 'absolute',
     width: TEXT_W,
