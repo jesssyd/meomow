@@ -106,7 +106,7 @@ export default function CameraScreen() {
     );
   }
 
-  const flashIcon = flash === 'off' ? <ZapOff size={22} color={Colors.button.secondaryText} /> : <Zap size={22} color={Colors.button.secondaryText} />;
+  const flashIcon = flash === 'off' ? <ZapOff size={22} color="white" /> : <Zap size={22} color="white" />;
 
   return (
     <View style={styles.container}>
@@ -125,7 +125,7 @@ export default function CameraScreen() {
         {/* Top bar: close + flash + flip */}
         <View style={styles.topControls}>
           <TouchableOpacity style={styles.circleBtn} onPress={handleCancel}>
-            <X size={24} color={Colors.button.secondaryText} />
+            <X size={24} color="white" />
           </TouchableOpacity>
 
           <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -133,39 +133,40 @@ export default function CameraScreen() {
               {flashIcon}
             </TouchableOpacity>
             <TouchableOpacity style={styles.circleBtn} onPress={toggleCameraFacing}>
-              <SwitchCamera size={24} color={Colors.button.secondaryText} />
+              <SwitchCamera size={24} color="white" />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Bottom controls: zoom above shutter button */}
+        {/* Bottom bar: zoom controls and shutter */}
         <View style={styles.bottomControls}>
-          {/* Zoom controls centered above shutter */}
-          <View style={styles.zoomSection}>
-            <View style={styles.zoomRow}>
+          <View style={styles.bottomRow}>
+            {/* Zoom cluster */}
+            <View style={styles.zoomCluster}>
               <TouchableOpacity 
-                style={[styles.zoomBtn, { opacity: zoom <= 0 ? 0 : 1 }]} 
+                style={[styles.smallBtn, zoom <= 0 && styles.disabledBtn]} 
                 onPress={zoomOut}
                 disabled={zoom <= 0}
               >
-                <Minus size={20} color={Colors.button.secondaryText} />
+                <Minus size={20} color={zoom <= 0 ? "rgba(255,255,255,0.4)" : "white"} />
               </TouchableOpacity>
               <Text style={styles.zoomLabel}>{`${(1 + zoom * 9).toFixed(1)}x`}</Text>
               <TouchableOpacity 
-                style={[styles.zoomBtn, { opacity: zoom >= 1 ? 0 : 1 }]} 
+                style={[styles.smallBtn, zoom >= 1 && styles.disabledBtn]} 
                 onPress={zoomIn}
                 disabled={zoom >= 1}
               >
-                <Plus size={20} color={Colors.button.secondaryText} />
+                <Plus size={20} color={zoom >= 1 ? "rgba(255,255,255,0.4)" : "white"} />
               </TouchableOpacity>
             </View>
-          </View>
 
-          {/* Shutter button centered */}
-          <View style={styles.shutterSection}>
+            {/* Shutter */}
             <TouchableOpacity style={styles.shutterButton} onPress={takePicture} activeOpacity={0.85}>
               <View style={styles.shutterButtonInner} />
             </TouchableOpacity>
+
+            {/* Empty space for balance */}
+            <View style={styles.rightSpacer} />
           </View>
         </View>
       </SafeAreaView>
@@ -217,67 +218,55 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.button.secondary,
+    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'center',
     alignItems: 'center',
   },
 
-  bottomControls: {
-    position: 'absolute',
-    bottom: 34,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-  },
-
-  zoomSection: {
-    marginBottom: 24,
-  },
-
-  zoomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-
-  zoomBtn: {
+  smallBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.button.secondary,
+    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  
+  disabledBtn: {
+    backgroundColor: 'rgba(0,0,0,0.25)',
+  },
 
+  zoomCluster: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    width: width * 0.32,
+    justifyContent: 'flex-start',
+  },
   zoomLabel: {
-    minWidth: 60,
+    minWidth: 48,
     textAlign: 'center',
     fontFamily: 'Jua-Regular',
     fontSize: FontSizes.body.fontSize,
     lineHeight: FontSizes.body.lineHeight,
-    color: Colors.primary.text,
-  },
-
-  shutterSection: {
-    alignItems: 'center',
+    color: Colors.white,
   },
 
   shutterButton: {
     width: 84,
     height: 84,
     borderRadius: 42,
-    backgroundColor: Colors.input.background,
+    backgroundColor: Colors.white,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: Colors.input.border,
+    borderWidth: 4,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   shutterButtonInner: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Colors.input.background,
+    backgroundColor: Colors.white,
   },
 
   rightSpacer: { 
