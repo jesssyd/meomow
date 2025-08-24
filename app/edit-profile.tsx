@@ -1,3 +1,4 @@
+// app/edit-profile.tsx
 import { useState, useEffect } from 'react';
 import {
   View,
@@ -10,6 +11,7 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
@@ -17,21 +19,13 @@ import { Colors, FontSizes } from '@/constants';
 import { Profile } from '@/types/profile';
 import { ProfileStorage } from '@/utils/profileStorage';
 
-const PROFILE_COLORS = [
-  '#FFB6C1', '#98FB98', '#87CEEB', '#DDA0DD', '#F0E68C', 
-  '#FFA07A', '#20B2AA', '#FF69B4', '#32CD32', '#FF6347'
-];
-
-const PROFILE_EMOJIS = ['😸', '😺', '😻', '😽', '🙀', '😿', '😾', '🐱', '🐈', '🐈‍⬛'];
-
 export default function EditProfileScreen() {
   const router = useRouter();
   const { profileId } = useLocalSearchParams<{ profileId: string }>();
   
   const [profile, setProfile] = useState<Profile | null>(null);
   const [displayName, setDisplayName] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
-  const [selectedEmoji, setSelectedEmoji] = useState('');
+  const [profileImageUri, setProfileImageUri] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -50,14 +44,34 @@ export default function EditProfileScreen() {
       if (currentProfile) {
         setProfile(currentProfile);
         setDisplayName(currentProfile.displayName);
-        setSelectedColor(currentProfile.profileColor);
-        setSelectedEmoji(currentProfile.profileEmoji);
+        // @ts-expect-error allow optional new field
+        setProfileImageUri(currentProfile.profileImageUri);
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error('error loading profile:', error);
       Alert.alert('error', 'failed to load profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('permission needed', 'please enable photo library access to upload an image.');
+      return;
+    }
+
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.9,
+      allowsEditing: true,
+      aspect: [1, 1],
+      selectionLimit: 1,
+    });
+
+    if (!res.canceled && res.assets?.length) {
+      setProfileImageUri(res.assets[0].uri);
     }
   };
 
@@ -71,8 +85,12 @@ export default function EditProfileScreen() {
     try {
       await ProfileStorage.updateProfile(profile.id, {
         displayName: displayName.trim(),
-        profileColor: selectedColor,
-        profileEmoji: selectedEmoji,
+        // keep new optional field alongside legacy ones
+        // @ts-expect-error storage may accept extra fields
+        profileImageUri,
+        // no more color or emoji updates
+        profileColor: undefined,
+        profileEmoji: undefined,
       });
       
       Alert.alert('success!', 'profile updated successfully', [
@@ -130,11 +148,21 @@ export default function EditProfileScreen() {
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Preview */}
           <View style={styles.previewContainer}>
-            <View style={[styles.previewAvatar, { backgroundColor: selectedColor }]}>
-              <Text style={styles.previewEmoji}>{selectedEmoji}</Text>
+            <View style={styles.previewAvatar}>
+              {profileImageUri ? (
+                <Image source={{ uri: profileImageUri }} style={styles.previewAvatarImg} />
+              ) : (
+                <View style={styles.previewAvatarEmpty}>
+                  <Text style={styles.previewAvatarEmptyText}>no photo</Text>
+                </View>
+              )}
             </View>
             <Text style={styles.previewName}>{displayName || 'display name'}</Text>
             <Text style={styles.previewUsername}>@{profile.username}</Text>
+
+            <TouchableOpacity style={styles.uploadBtn} onPress={pickImage}>
+              <Text style={styles.uploadBtnText}>{profileImageUri ? 'change photo' : 'upload photo'}</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Display Name */}
@@ -147,43 +175,6 @@ export default function EditProfileScreen() {
               placeholder="enter display name"
               placeholderTextColor={Colors.primary.textInactive}
             />
-          </View>
-
-          {/* Profile Color */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>profile color</Text>
-            <View style={styles.colorGrid}>
-              {PROFILE_COLORS.map((color) => (
-                <TouchableOpacity
-                  key={color}
-                  style={[
-                    styles.colorOption,
-                    { backgroundColor: color },
-                    selectedColor === color && styles.selectedColorOption
-                  ]}
-                  onPress={() => setSelectedColor(color)}
-                />
-              ))}
-            </View>
-          </View>
-
-          {/* Profile Emoji */}
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>profile emoji</Text>
-            <View style={styles.emojiGrid}>
-              {PROFILE_EMOJIS.map((emoji) => (
-                <TouchableOpacity
-                  key={emoji}
-                  style={[
-                    styles.emojiOption,
-                    selectedEmoji === emoji && styles.selectedEmojiOption
-                  ]}
-                  onPress={() => setSelectedEmoji(emoji)}
-                >
-                  <Text style={styles.emojiText}>{emoji}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
           </View>
 
           <View style={styles.bottomSpacer} />
@@ -206,6 +197,8 @@ export default function EditProfileScreen() {
     </SafeAreaView>
   );
 }
+
+const AVATAR_SIZE = 96;
 
 const styles = StyleSheet.create({
   container: {
@@ -286,15 +279,28 @@ const styles = StyleSheet.create({
     borderColor: Colors.input.border,
   },
   previewAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    overflow: 'hidden',
     marginBottom: 16,
+    backgroundColor: Colors.inputAlt.background,
+    borderWidth: 1,
+    borderColor: Colors.input.border,
   },
-  previewEmoji: {
-    fontSize: 36,
+  previewAvatarImg: {
+    width: '100%',
+    height: '100%',
+  },
+  previewAvatarEmpty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewAvatarEmptyText: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.caption,
+    color: Colors.primary.textInactive,
   },
   previewName: {
     fontFamily: 'Jua-Regular',
@@ -306,6 +312,19 @@ const styles = StyleSheet.create({
     fontFamily: 'Jua-Regular',
     ...FontSizes.body,
     color: Colors.primary.textInactive,
+    marginBottom: 16,
+  },
+  uploadBtn: {
+    backgroundColor: Colors.button.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  uploadBtnText: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.body,
+    color: Colors.button.primaryText,
   },
 
   // Form
@@ -328,47 +347,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Jua-Regular',
     ...FontSizes.body,
     color: Colors.primary.text,
-  },
-
-  // Color Grid
-  colorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  colorOption: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 3,
-    borderColor: 'transparent',
-  },
-  selectedColorOption: {
-    borderColor: Colors.primary.text,
-  },
-
-  // Emoji Grid
-  emojiGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  emojiOption: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.input.background,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  selectedEmojiOption: {
-    borderColor: Colors.primary.text,
-    backgroundColor: Colors.inputAlt.background,
-  },
-  emojiText: {
-    fontSize: 24,
   },
 
   // Save Button
