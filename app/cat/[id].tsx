@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-// Icons stroke width set to 2.5 for a slightly thicker look.
 import { ArrowLeft, MapPin, Pencil } from 'lucide-react-native';
 
 import { Colors } from '@/constants/Colors';
@@ -50,7 +49,7 @@ export default function CatDetailScreen() {
           setLoading(false);
         }
       } catch (error) {
-        console.error('error loading cat:', error);
+        console.error('Error loading cat:', error);
         if (alive) setLoading(false);
       }
     })();
@@ -98,6 +97,7 @@ export default function CatDetailScreen() {
   }
 
   const catName = cat.name || 'Unknown Cat';
+
   const GRID_COLUMNS = 3;
   const H_PADDING = 20;
   const GAP = 8;
@@ -110,115 +110,146 @@ export default function CatDetailScreen() {
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
-          <ArrowLeft size={24} color={Colors.primary.text} strokeWidth={2.5} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{catName}</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={handleEdit}>
-          <Pencil size={20} color={Colors.primary.text} strokeWidth={2.5} />
-        </TouchableOpacity>
+      {/* Pattern above background color, below all content */}
+      <View style={styles.patternContainer} pointerEvents="none">
+        <Image
+          source={require('@/assets/images/pawprint.png')}
+          style={styles.bgPattern}
+        />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Last Updated */}
-        <Text style={styles.lastUpdated}>
-          last updated: {formatDate(cat.lastUpdated || cat.dateAdded)}
-        </Text>
-
-        {/* Photo Grid */}
-        <View style={styles.galleryContainer}>
-          <Text style={styles.galleryTitle}>photos</Text>
-
-          {allPhotos.length > 0 ? (
-            <View style={[styles.grid, { gap: GAP }]}>
-              {allPhotos.map((uri, idx) => (
-                <View
-                  key={`${uri}-${idx}`}
-                  style={[styles.gridItem, { width: thumbSize, height: thumbSize }]}
-                >
-                  <Image
-                    source={{ uri }}
-                    style={styles.gridImage}
-                    onError={(e) =>
-                      console.log('Image load error:', e.nativeEvent.error)
-                    }
-                  />
-                </View>
-              ))}
-            </View>
-          ) : (
-            <View style={[styles.gridPlaceholder, { height: thumbSize }]}>
-              <Text style={styles.placeholderText}>no photos</Text>
-            </View>
-          )}
+      {/* Foreground content layer */}
+      <View style={styles.contentLayer}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
+            <ArrowLeft size={24} color={Colors.primary.text} strokeWidth={2.5} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>{catName}</Text>
+          <TouchableOpacity style={styles.headerButton} onPress={handleEdit}>
+            <Pencil size={20} color={Colors.primary.text} strokeWidth={2.5} />
+          </TouchableOpacity>
         </View>
 
-        {/* Location below photos */}
-        <View style={styles.locationContainer}>
-          <MapPin size={16} color={Colors.primary.text} strokeWidth={2.5} />
-          <Text style={styles.locationText}>
-            {cat.location?.address && cat.location.address.trim()
-              ? cat.location.address
-              : 'Location not specified'}
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Last Updated above photos, left aligned */}
+          <Text style={styles.lastUpdated}>
+            last updated: {formatDate(cat.lastUpdated || cat.dateAdded)}
           </Text>
-        </View>
 
-        {/* Details */}
-        <View style={styles.detailsContainer}>
-          {/* Facts */}
-          <View style={styles.infoSection}>
-            <Text style={styles.sectionTitle}>{catName} is...</Text>
-            <View style={styles.infoGrid}>
-              <Text style={styles.infoLabel}>
-                • a {cat.breed && cat.breed.trim() && cat.breed !== 'Unknown'
-                  ? cat.breed.toLowerCase()
-                  : 'mystery'} cat
-              </Text>
-              <Text style={styles.infoLabel}>
-                • {cat.age && cat.age.trim() && cat.age !== 'Unknown'
-                  ? cat.age.toLowerCase()
-                  : 'age unknown'}
-              </Text>
-            </View>
-          </View>
+          {/* Photo Grid with green background */}
+          <View style={styles.galleryContainer}>
+            <Text style={styles.galleryTitle}>photos</Text>
 
-          {/* Personality */}
-          <View style={styles.personalitySection}>
-            <Text style={styles.sectionTitle}>personality</Text>
-            <View style={styles.personalityContainer}>
-              {Array.isArray(cat.personality) && cat.personality.length > 0 ? (
-                cat.personality.map((trait, index) => (
-                  <View key={`${trait}-${index}`} style={styles.personalityChip}>
-                    <Text style={styles.personalityText}>{trait}</Text>
+            {allPhotos.length > 0 ? (
+              <View style={[styles.grid, { gap: GAP }]}>
+                {allPhotos.map((uri, idx) => (
+                  <View
+                    key={`${uri}-${idx}`}
+                    style={[styles.gridItem, { width: thumbSize, height: thumbSize }]}
+                  >
+                    <Image
+                      source={{ uri }}
+                      style={styles.gridImage}
+                      onError={(e) =>
+                        console.log('Image load error:', e.nativeEvent.error)
+                      }
+                    />
                   </View>
-                ))
-              ) : (
-                <Text style={[styles.noDataText, styles.inactiveText]}>
-                  no personality traits specified
-                </Text>
-              )}
-            </View>
+                ))}
+              </View>
+            ) : (
+              <View style={[styles.gridPlaceholder, { height: thumbSize }]}>
+                <Text style={styles.placeholderText}>no photos</Text>
+              </View>
+            )}
           </View>
 
-          {/* Notes */}
-          <View style={styles.notesSection}>
-            <Text style={styles.sectionTitle}>notes</Text>
-            <Text style={[styles.notesText, !hasNotes && styles.inactiveText]}>
-              {hasNotes ? cat.notes : 'no notes added yet'}
+          {/* Location below photos, left aligned */}
+          <View style={styles.locationContainer}>
+            <MapPin size={16} color={Colors.primary.text} strokeWidth={2.5} />
+            <Text style={styles.locationText}>
+              {cat.location?.address && cat.location.address.trim()
+                ? cat.location.address
+                : 'Location not specified'}
             </Text>
           </View>
-        </View>
-      </ScrollView>
+
+          {/* Details */}
+          <View style={styles.detailsContainer}>
+            {/* Facts */}
+            <View style={styles.infoSection}>
+              <Text style={styles.sectionTitle}>{catName} is...</Text>
+              <View style={styles.infoGrid}>
+                <Text style={styles.infoLabel}>
+                  • a {cat.breed && cat.breed.trim() && cat.breed !== 'Unknown'
+                    ? cat.breed.toLowerCase()
+                    : 'mystery'} cat
+                </Text>
+                <Text style={styles.infoLabel}>
+                  • {cat.age && cat.age.trim() && cat.age !== 'Unknown'
+                    ? cat.age.toLowerCase()
+                    : 'age unknown'}
+                </Text>
+              </View>
+            </View>
+
+            {/* Personality */}
+            <View style={styles.personalitySection}>
+              <Text style={styles.sectionTitle}>personality</Text>
+              <View style={styles.personalityContainer}>
+                {Array.isArray(cat.personality) && cat.personality.length > 0 ? (
+                  cat.personality.map((trait, index) => (
+                    <View key={`${trait}-${index}`} style={styles.personalityChip}>
+                      <Text style={styles.personalityText}>{trait}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={[styles.noDataText, styles.inactiveText]}>
+                    no personality traits specified
+                  </Text>
+                )}
+              </View>
+            </View>
+
+            {/* Notes without box or border, aligned to header */}
+            <View style={styles.notesSection}>
+              <Text style={styles.sectionTitle}>notes</Text>
+              <Text style={[styles.notesText, !hasNotes && styles.inactiveText]}>
+                {hasNotes ? cat.notes : 'no notes added yet'}
+              </Text>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  // Base
   container: { flex: 1, backgroundColor: Colors.primary.backgroundGreen },
   center: { justifyContent: 'center', alignItems: 'center' },
 
+  // Pattern layer (on top of color, under content)
+  patternContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 0,
+  },
+  bgPattern: {
+    position: 'absolute',
+    right: 0,
+    top: '14%',      // Figma Y 14%
+    width: '47%',    // Figma scale 47%
+    aspectRatio: 1,  // square art
+    opacity: 0.05,   // overall pattern opacity 5%
+    resizeMode: 'contain',
+  },
+
+  // Foreground content layer
+  contentLayer: { flex: 1, zIndex: 1 },
+
+  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -230,12 +261,21 @@ const styles = StyleSheet.create({
   headerTitle: {
     flex: 1,
     fontFamily: 'Jua-Regular',
-    ...FontSizes.heading,
+    ...FontSizes.heading, // 22
     color: Colors.primary.text,
     textAlign: 'center',
   },
 
   content: { flex: 1 },
+
+  // Last updated
+  lastUpdated: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.body, // 16
+    color: Colors.primary.text,
+    marginLeft: 20,
+    marginTop: 12,
+  },
 
   // Gallery
   galleryContainer: {
@@ -271,14 +311,6 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
 
-  lastUpdated: {
-    fontFamily: 'Jua-Regular',
-    ...FontSizes.body,
-    color: Colors.primary.text,
-    marginLeft: 20,
-    marginTop: 12,
-  },
-
   // Location
   locationContainer: {
     flexDirection: 'row',
@@ -310,6 +342,7 @@ const styles = StyleSheet.create({
     color: Colors.primary.text,
   },
 
+  // Personality
   personalitySection: { marginBottom: 20 },
   personalityContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   personalityChip: {
@@ -329,6 +362,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
+  // Notes
   notesSection: { marginBottom: 20 },
   notesText: {
     fontFamily: 'Jua-Regular',
@@ -337,16 +371,14 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
+  // Empty states etc.
   noDataText: {
     fontFamily: 'Jua-Regular',
     ...FontSizes.body,
     color: Colors.primary.text,
     fontStyle: 'italic',
   },
-
-  inactiveText: {
-    color: Colors.primary.textInactive,
-  },
+  inactiveText: { color: Colors.primary.textInactive },
 
   backButton: {
     marginTop: 20,
