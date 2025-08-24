@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Jua-Regular',
     fontSize: FontSizes.body.fontSize,
     lineHeight: FontSizes.body.lineHeight,
-    color: Colors.white,
+    color: Colors.button.secondaryText,
   },
   primaryButtonText: {
     color: Colors.button.primaryText,
