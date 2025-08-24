@@ -144,15 +144,16 @@ export default function ProfileScreen() {
       <View style={styles.patternContainer} pointerEvents="none" />
 
       {/* header aligned to index.tsx height and padding */}
-      <View style={styles.headerAligned}>
-        <Text style={styles.headerTitle}>profile</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={handleEditProfile}>
-          <Edit3 size={20} color={Colors.primary.text} />
-        </TouchableOpacity>
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>profile</Text>
+          <TouchableOpacity style={styles.headerButton} onPress={handleEditProfile}>
+            <Edit3 size={20} color={Colors.primary.text} />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={styles.contentLayer}>
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Profile Card */}
           <View style={styles.profileCard}>
             <View style={styles.profileAvatar}>
@@ -258,15 +259,17 @@ const styles = StyleSheet.create({
   },
 
   // header aligned with index.tsx: same paddings and background
-  headerAligned: {
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
-    backgroundColor: Colors.primary.backgroundAlt,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
+ header: {
+  paddingHorizontal: 16,
+  paddingTop: 60,
+  paddingBottom: 16,
+  backgroundColor: Colors.primary.backgroundAlt,
+},
+headerContent: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+},
   headerTitle: {
     fontFamily: 'Jua-Regular',
     ...FontSizes.heading,
