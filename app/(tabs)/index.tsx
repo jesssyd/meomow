@@ -86,7 +86,7 @@ export default function CatalogScreen() {
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <View>
-              <Text style={styles.title}>cat catalog</Text>
+              <Text style={styles.title}>catalog</Text>
               <Text style={styles.subtitle}>...</Text>
             </View>
             <Image 
@@ -112,9 +112,9 @@ export default function CatalogScreen() {
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <View>
-              <Text style={styles.title}>cat catalog</Text>
+              <Text style={styles.title}> {profile?.displayName ? `${profile.displayName}'s catalog` : 'catalog'}</Text>
               <Text style={styles.subtitle}>
-                {profile?.displayName ? `${profile.displayName}'s collection` : '0 kitties found'}
+                0 kitties found
               </Text>
             </View>
             <Image 
@@ -140,12 +140,9 @@ export default function CatalogScreen() {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View>
-            <Text style={styles.title}>cat catalog</Text>
+            <Text style={styles.title}>{profile?.displayName ? `${profile.displayName}'s catalog` : 'catalog'}</Text>
             <Text style={styles.subtitle}>
-              {profile?.displayName 
-                ? `${profile.displayName} found ${cats.length} ${cats.length === 1 ? 'kitty' : 'kitties'}`
-                : `${cats.length} ${cats.length === 1 ? 'kitty' : 'kitties'} found`
-              }
+              `${cats.length} ${cats.length === 1 ? 'kitty' : 'kitties'} found`
             </Text>
           </View>
           <Image 
