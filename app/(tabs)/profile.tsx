@@ -248,8 +248,8 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 16,
     paddingTop: 0,
-    paddingBottom: 0,
-    backgroundColor: Colors.primary.backgroundAlt,
+    paddingBottom: 16,
+    backgroundColor:' Colors.primary.backgroundAlt',
   },
   headerContent: {
     flexDirection: 'row',
