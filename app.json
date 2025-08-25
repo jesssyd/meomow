@@ -19,7 +19,11 @@
       "permissions": [
         "CAMERA",
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -29,12 +33,18 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font", 
+      "expo-font",
       "expo-camera",
       "expo-location"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2855e164-ca99-4fed-8379-43e27e0f0f3b"
+      }
     }
   }
 }
