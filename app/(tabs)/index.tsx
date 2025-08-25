@@ -142,7 +142,7 @@ export default function CatalogScreen() {
           <View>
             <Text style={styles.title}>{profile?.displayName ? `${profile.displayName}'s catalog` : 'catalog'}</Text>
             <Text style={styles.subtitle}>
-              `${cats.length} ${cats.length === 1 ? 'kitty' : 'kitties'} found`
+              `${cats.length === 1 ? 'kitty' : 'kitties'} found`
             </Text>
           </View>
           <Image 
