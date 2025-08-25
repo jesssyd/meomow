@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Camera, MapPin, RefreshCw, X as XIcon } from 'lucide-react-native';
+import { ArrowLeft, Camera, MapPin, RefreshCw, X as XIcon, Trash2 } from 'lucide-react-native';
 import uuid from 'react-native-uuid';
 
 import { Colors } from '@/constants/Colors';
@@ -152,6 +152,37 @@ export default function AddCatScreen() {
     }));
   };
 
+  const handleDeleteCat = () => {
+    if (!isEditing || !catId || !currentProfileId) return;
+
+    Alert.alert(
+      'delete cat',
+      'are you sure you want to delete this cat from your catalog? this action cannot be undone.',
+      [
+        { text: 'cancel', style: 'cancel' },
+        {
+          text: 'delete',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await CatStorage.deleteCat(currentProfileId, catId);
+              await ProfileStorage.incrementCatCount(currentProfileId, -1);
+              Alert.alert('deleted', 'cat has been removed from your catalog', [
+                { text: 'ok', onPress: () => router.back() }
+              ]);
+            } catch (error) {
+              console.error('error deleting cat:', error);
+              Alert.alert('error', 'failed to delete cat. please try again.');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const canSave = formData.photoUris.length > 0 && !loading;
 
   const handleSave = async () => {
@@ -242,7 +273,13 @@ export default function AddCatScreen() {
             <ArrowLeft size={24} color={Colors.primary.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{isEditing ? 'edit cat!' : 'new cat!'}</Text>
-          <View style={styles.headerSpacer} />
+          {isEditing ? (
+            <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteCat}>
+              <Trash2 size={20} color={Colors.error.primary} />
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.headerSpacer} />
+          )}
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -432,6 +469,12 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 44,
+  },
+  deleteButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // section labels

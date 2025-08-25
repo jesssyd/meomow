@@ -1,5 +1,5 @@
 // app/cat/[id].tsx
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,15 @@ import {
   ScrollView,
   ActivityIndicator,
   Dimensions,
+  Modal,
+  StatusBar,
+  PanGestureHandler,
+  State,
 } from 'react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, MapPin, Pencil } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Pencil, X, ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 import { Colors } from '@/constants/Colors';
 import { FontSizes } from '@/constants/Fonts';
@@ -37,6 +42,8 @@ export default function CatDetailScreen() {
 
   const [cat, setCat] = useState<Cat | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fullScreenVisible, setFullScreenVisible] = useState(false);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -80,6 +87,27 @@ export default function CatDetailScreen() {
     }
     return [];
   }, [cat]);
+
+  const openFullScreen = (index: number) => {
+    setSelectedPhotoIndex(index);
+    setFullScreenVisible(true);
+  };
+
+  const closeFullScreen = () => {
+    setFullScreenVisible(false);
+  };
+
+  const goToPrevious = () => {
+    setSelectedPhotoIndex(prev => 
+      prev > 0 ? prev - 1 : allPhotos.length - 1
+    );
+  };
+
+  const goToNext = () => {
+    setSelectedPhotoIndex(prev => 
+      prev < allPhotos.length - 1 ? prev + 1 : 0
+    );
+  };
 
   if (loading) {
     return (
@@ -152,9 +180,11 @@ export default function CatDetailScreen() {
             {allPhotos.length > 0 ? (
               <View style={[styles.grid, { gap: GAP }]}>
                 {allPhotos.map((uri, idx) => (
-                  <View
+                  <TouchableOpacity
                     key={`${uri}-${idx}`}
                     style={[styles.gridItem, { width: thumbSize, height: thumbSize }]}
+                    onPress={() => openFullScreen(idx)}
+                    activeOpacity={0.8}
                   >
                     <Image
                       source={{ uri }}
@@ -163,7 +193,7 @@ export default function CatDetailScreen() {
                         console.log('Image load error:', e.nativeEvent.error)
                       }
                     />
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             ) : (
@@ -230,6 +260,59 @@ export default function CatDetailScreen() {
           </View>
         </ScrollView>
       </View>
+
+      {/* Full Screen Image Modal */}
+      <Modal
+        visible={fullScreenVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeFullScreen}
+      >
+        <StatusBar hidden />
+        <View style={styles.fullScreenContainer}>
+          <TouchableOpacity 
+            style={styles.closeButton}
+            onPress={closeFullScreen}
+            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+          >
+            <X size={28} color={Colors.white} strokeWidth={2.5} />
+          </TouchableOpacity>
+
+          {allPhotos.length > 0 && (
+            <Image
+              source={{ uri: allPhotos[selectedPhotoIndex] }}
+              style={styles.fullScreenImage}
+              resizeMode="contain"
+            />
+          )}
+
+          {allPhotos.length > 1 && (
+            <>
+              <TouchableOpacity 
+                style={[styles.navButton, styles.prevButton]}
+                onPress={goToPrevious}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              >
+                <ChevronLeft size={32} color={Colors.white} strokeWidth={2.5} />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[styles.navButton, styles.nextButton]}
+                onPress={goToNext}
+                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+              >
+                <ChevronRight size={32} color={Colors.white} strokeWidth={2.5} />
+              </TouchableOpacity>
+
+              <View style={styles.photoCounter}>
+                <Text style={styles.photoCounterText}>
+                  {selectedPhotoIndex + 1} of {allPhotos.length}
+                </Text>
+              </View>
+            </>
+          )}
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -399,4 +482,59 @@ const styles = StyleSheet.create({
 
   loadingText: { fontFamily: 'Jua-Regular', ...FontSizes.body, color: Colors.primary.text, marginTop: 12 },
   errorText: { fontFamily: 'Jua-Regular', ...FontSizes.body, color: Colors.primary.text },
+
+  // Full Screen Image Modal
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: Colors.black,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: '100%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navButton: {
+    position: 'absolute',
+    top: '50%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  prevButton: {
+    left: 20,
+  },
+  nextButton: {
+    right: 20,
+  },
+  photoCounter: {
+    position: 'absolute',
+    bottom: 80,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  photoCounterText: {
+    fontFamily: 'Jua-Regular',
+    ...FontSizes.body,
+    color: Colors.white,
+  },
 });

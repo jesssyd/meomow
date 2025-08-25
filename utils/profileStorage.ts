@@ -146,12 +146,12 @@ export const ProfileStorage = {
     }
   },
 
-  async incrementCatCount(profileId: string): Promise<void> {
+  async incrementCatCount(profileId: string, increment: number = 1): Promise<void> {
     try {
       const profiles = await readAllProfiles();
       const profile = profiles.find(p => p.id === profileId);
       if (profile) {
-        profile.totalCatsFound += 1;
+        profile.totalCatsFound = Math.max(0, profile.totalCatsFound + increment);
         profile.lastActive = new Date().toISOString();
         await writeAllProfiles(profiles);
       }
