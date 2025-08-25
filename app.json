@@ -10,9 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.meomow.catalog",
       "infoPlist": {
         "NSCameraUsageDescription": "meomow needs camera access to take photos of cats for your catalog.",
-        "NSLocationWhenInUseUsageDescription": "meomow needs location access to record where you found each cat."
+        "NSLocationWhenInUseUsageDescription": "meomow needs location access to record where you found each cat.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
