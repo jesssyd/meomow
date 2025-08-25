@@ -11,8 +11,6 @@ import {
   Dimensions,
   Modal,
   StatusBar,
-  PanGestureHandler,
-  State,
 } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
